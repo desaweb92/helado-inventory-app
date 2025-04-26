@@ -9,6 +9,8 @@ import Inventario from "./components/Inventario";
 import ProduccionTable from "./components/ProduccionTable";
 import VentasTable from "./components/VentasTable";
 import Filtros from "./components/Filtros";
+import ResumenVentas from "./components/ResumenVentas";
+import ResumenProduccion from "./components/ResumenProduccion";
 
 const HeladoApp = () => {
   const [formData, setFormData] = useState({
@@ -48,6 +50,40 @@ const HeladoApp = () => {
   const [editIndex, setEditIndex] = useState(null);
   const [activeSection, setActiveSection] = useState("produccion");
 
+  const [resumenVentas, setResumenVentas] = useState({
+    totalVentasDia: 0,
+    totalVentasMes: 0,
+    totalVentasAnio: 0,
+    totalVentasSemana: 0,
+    totalEfectivoDia: 0,
+    totalEfectivoMes: 0,
+    totalEfectivoAnio: 0,
+    totalEfectivoSemana: 0,
+    totalPuntoDia: 0,
+    totalPuntoMes: 0,
+    totalPuntoAnio: 0,
+    totalPuntoSemana: 0,
+    totalPagoMovilDia: 0,
+    totalPagoMovilMes: 0,
+    totalPagoMovilAnio: 0,
+    totalPagoMovilSemana: 0,
+  });
+
+  const [resumenProduccion, setResumenProduccion] = useState({
+    totalProduccionDia: 0,
+    totalProduccionMes: 0,
+    totalProduccionAnio: 0,
+    totalProduccionSemana: 0,
+    totalMaquinaSoftDia: 0,
+    totalMaquinaSoftMes: 0,
+    totalMaquinaSoftAnio: 0,
+    totalMaquinaSoftSemana: 0,
+    totalMaquinaMantecadoraDia: 0,
+    totalMaquinaMantecadoraMes: 0,
+    totalMaquinaMantecadoraAnio: 0,
+    totalMaquinaMantecadoraSemana: 0,
+  });
+
   useEffect(() => {
     // Actualizar el inventario cuando cambie la producción del día
     const nuevoInventario = produccionDia.reduce((acc, item) => {
@@ -63,6 +99,273 @@ const HeladoApp = () => {
 
     setInventario(nuevoInventario);
   }, [produccionDia]);
+
+  useEffect(() => {
+    // Calcular resumen de ventas
+    const calcularResumenVentas = () => {
+      const filtradas = aplicarFiltrosVentas();
+      const totalVentasDia = filtradas.reduce((total, venta) => total + parseFloat(venta.precioTotal || 0), 0);
+      const totalVentasMes = ventasDia.reduce((total, venta) => {
+        const fechaSplit = venta.fecha.split("/");
+        const mes = fechaSplit[1];
+        if (mes === filtros.mes) {
+          return total + parseFloat(venta.precioTotal || 0);
+        }
+        return total;
+      }, 0);
+      const totalVentasAnio = ventasDia.reduce((total, venta) => {
+        const fechaSplit = venta.fecha.split("/");
+        const anio = fechaSplit[2];
+        if (anio === filtros.anio) {
+          return total + parseFloat(venta.precioTotal || 0);
+        }
+        return total;
+      }, 0);
+
+      const totalEfectivoDia = filtradas.reduce((total, venta) => venta.metodoPago === "Efectivo" ? total + parseFloat(venta.precioTotal || 0) : total, 0);
+      const totalEfectivoMes = ventasDia.reduce((total, venta) => {
+        const fechaSplit = venta.fecha.split("/");
+        const mes = fechaSplit[1];
+        if (mes === filtros.mes && venta.metodoPago === "Efectivo") {
+          return total + parseFloat(venta.precioTotal || 0);
+        }
+        return total;
+      }, 0);
+      const totalEfectivoAnio = ventasDia.reduce((total, venta) => {
+        const fechaSplit = venta.fecha.split("/");
+        const anio = fechaSplit[2];
+        if (anio === filtros.anio && venta.metodoPago === "Efectivo") {
+          return total + parseFloat(venta.precioTotal || 0);
+        }
+        return total;
+      }, 0);
+
+      const totalPuntoDia = filtradas.reduce((total, venta) => venta.metodoPago === "Punto" ? total + parseFloat(venta.precioTotal || 0) : total, 0);
+      const totalPuntoMes = ventasDia.reduce((total, venta) => {
+        const fechaSplit = venta.fecha.split("/");
+        const mes = fechaSplit[1];
+        if (mes === filtros.mes && venta.metodoPago === "Punto") {
+          return total + parseFloat(venta.precioTotal || 0);
+        }
+        return total;
+      }, 0);
+      const totalPuntoAnio = ventasDia.reduce((total, venta) => {
+        const fechaSplit = venta.fecha.split("/");
+        const anio = fechaSplit[2];
+        if (anio === filtros.anio && venta.metodoPago === "Punto") {
+          return total + parseFloat(venta.precioTotal || 0);
+        }
+        return total;
+      }, 0);
+
+      const totalPagoMovilDia = filtradas.reduce((total, venta) => venta.metodoPago === "PagoMovil" ? total + parseFloat(venta.precioTotal || 0) : total, 0);
+      const totalPagoMovilMes = ventasDia.reduce((total, venta) => {
+        const fechaSplit = venta.fecha.split("/");
+        const mes = fechaSplit[1];
+        if (mes === filtros.mes && venta.metodoPago === "PagoMovil") {
+          return total + parseFloat(venta.precioTotal || 0);
+        }
+        return total;
+      }, 0);
+      const totalPagoMovilAnio = ventasDia.reduce((total, venta) => {
+        const fechaSplit = venta.fecha.split("/");
+        const anio = fechaSplit[2];
+        if (anio === filtros.anio && venta.metodoPago === "PagoMovil") {
+          return total + parseFloat(venta.precioTotal || 0);
+        }
+        return total;
+      }, 0);
+
+      const totalVentasSemana = ventasDia.reduce((total, venta) => {
+        const fecha = new Date(venta.fecha.split("/").reverse().join("-"));
+        const startOfWeek = new Date(fecha);
+        startOfWeek.setDate(fecha.getDate() - fecha.getDay());
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+        if (fecha >= startOfWeek && fecha <= endOfWeek) {
+          return total + parseFloat(venta.precioTotal || 0);
+        }
+        return total;
+      }, 0);
+
+      const totalEfectivoSemana = ventasDia.reduce((total, venta) => {
+        const fecha = new Date(venta.fecha.split("/").reverse().join("-"));
+        const startOfWeek = new Date(fecha);
+        startOfWeek.setDate(fecha.getDate() - fecha.getDay());
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+        if (fecha >= startOfWeek && fecha <= endOfWeek && venta.metodoPago === "Efectivo") {
+          return total + parseFloat(venta.precioTotal || 0);
+        }
+        return total;
+      }, 0);
+
+      const totalPuntoSemana = ventasDia.reduce((total, venta) => {
+        const fecha = new Date(venta.fecha.split("/").reverse().join("-"));
+        const startOfWeek = new Date(fecha);
+        startOfWeek.setDate(fecha.getDate() - fecha.getDay());
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+        if (fecha >= startOfWeek && fecha <= endOfWeek && venta.metodoPago === "Punto") {
+          return total + parseFloat(venta.precioTotal || 0);
+        }
+        return total;
+      }, 0);
+
+      const totalPagoMovilSemana = ventasDia.reduce((total, venta) => {
+        const fecha = new Date(venta.fecha.split("/").reverse().join("-"));
+        const startOfWeek = new Date(fecha);
+        startOfWeek.setDate(fecha.getDate() - fecha.getDay());
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+        if (fecha >= startOfWeek && fecha <= endOfWeek && venta.metodoPago === "PagoMovil") {
+          return total + parseFloat(venta.precioTotal || 0);
+        }
+        return total;
+      }, 0);
+
+      setResumenVentas({
+        totalVentasDia,
+        totalVentasMes,
+        totalVentasAnio,
+        totalVentasSemana,
+        totalEfectivoDia,
+        totalEfectivoMes,
+        totalEfectivoAnio,
+        totalEfectivoSemana,
+        totalPuntoDia,
+        totalPuntoMes,
+        totalPuntoAnio,
+        totalPuntoSemana,
+        totalPagoMovilDia,
+        totalPagoMovilMes,
+        totalPagoMovilAnio,
+        totalPagoMovilSemana,
+      });
+    };
+
+    calcularResumenVentas();
+  }, [ventasDia, filtros]);
+
+  useEffect(() => {
+    // Calcular resumen de producción
+    const calcularResumenProduccion = () => {
+      const filtradas = aplicarFiltros();
+      const totalProduccionDia = filtradas.reduce((total, item) => total + parseInt(item.cantidad || 0), 0);
+      const totalProduccionMes = produccionDia.reduce((total, item) => {
+        const fechaSplit = item.fecha.split("/");
+        const mes = fechaSplit[1];
+        if (mes === filtros.mes) {
+          return total + parseInt(item.cantidad || 0);
+        }
+        return total;
+      }, 0);
+      const totalProduccionAnio = produccionDia.reduce((total, item) => {
+        const fechaSplit = item.fecha.split("/");
+        const anio = fechaSplit[2];
+        if (anio === filtros.anio) {
+          return total + parseInt(item.cantidad || 0);
+        }
+        return total;
+      }, 0);
+
+      const totalMaquinaSoftDia = filtradas.reduce((total, item) => item.maquina === "soft" ? total + parseInt(item.cantidad || 0) : total, 0);
+      const totalMaquinaSoftMes = produccionDia.reduce((total, item) => {
+        const fechaSplit = item.fecha.split("/");
+        const mes = fechaSplit[1];
+        if (mes === filtros.mes && item.maquina === "soft") {
+          return total + parseInt(item.cantidad || 0);
+        }
+        return total;
+      }, 0);
+      const totalMaquinaSoftAnio = produccionDia.reduce((total, item) => {
+        const fechaSplit = item.fecha.split("/");
+        const anio = fechaSplit[2];
+        if (anio === filtros.anio && item.maquina === "soft") {
+          return total + parseInt(item.cantidad || 0);
+        }
+        return total;
+      }, 0);
+
+      const totalMaquinaMantecadoraDia = filtradas.reduce((total, item) => item.maquina === "mantecadora" ? total + parseInt(item.cantidad || 0) : total, 0);
+      const totalMaquinaMantecadoraMes = produccionDia.reduce((total, item) => {
+        const fechaSplit = item.fecha.split("/");
+        const mes = fechaSplit[1];
+        if (mes === filtros.mes && item.maquina === "mantecadora") {
+          return total + parseInt(item.cantidad || 0);
+        }
+        return total;
+      }, 0);
+      const totalMaquinaMantecadoraAnio = produccionDia.reduce((total, item) => {
+        const fechaSplit = item.fecha.split("/");
+        const anio = fechaSplit[2];
+        if (anio === filtros.anio && item.maquina === "mantecadora") {
+          return total + parseInt(item.cantidad || 0);
+        }
+        return total;
+      }, 0);
+
+      const totalProduccionSemana = produccionDia.reduce((total, item) => {
+        const fecha = new Date(item.fecha.split("/").reverse().join("-"));
+        const startOfWeek = new Date(fecha);
+        startOfWeek.setDate(fecha.getDate() - fecha.getDay());
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+        if (fecha >= startOfWeek && fecha <= endOfWeek) {
+          return total + parseInt(item.cantidad || 0);
+        }
+        return total;
+      }, 0);
+
+      const totalMaquinaSoftSemana = produccionDia.reduce((total, item) => {
+        const fecha = new Date(item.fecha.split("/").reverse().join("-"));
+        const startOfWeek = new Date(fecha);
+        startOfWeek.setDate(fecha.getDate() - fecha.getDay());
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+        if (fecha >= startOfWeek && fecha <= endOfWeek && item.maquina === "soft") {
+          return total + parseInt(item.cantidad || 0);
+        }
+        return total;
+      }, 0);
+
+      const totalMaquinaMantecadoraSemana = produccionDia.reduce((total, item) => {
+        const fecha = new Date(item.fecha.split("/").reverse().join("-"));
+        const startOfWeek = new Date(fecha);
+        startOfWeek.setDate(fecha.getDate() - fecha.getDay());
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+        if (fecha >= startOfWeek && fecha <= endOfWeek && item.maquina === "mantecadora") {
+          return total + parseInt(item.cantidad || 0);
+        }
+        return total;
+      }, 0);
+
+      setResumenProduccion({
+        totalProduccionDia,
+        totalProduccionMes,
+        totalProduccionAnio,
+        totalProduccionSemana,
+        totalMaquinaSoftDia,
+        totalMaquinaSoftMes,
+        totalMaquinaSoftAnio,
+        totalMaquinaSoftSemana,
+        totalMaquinaMantecadoraDia,
+        totalMaquinaMantecadoraMes,
+        totalMaquinaMantecadoraAnio,
+        totalMaquinaMantecadoraSemana,
+      });
+    };
+
+    calcularResumenProduccion();
+  }, [produccionDia, filtros]);
 
   const totalInventario = Object.values(inventario.normal).reduce(
     (total, cantidad) => total + cantidad,
@@ -204,6 +507,38 @@ const HeladoApp = () => {
     });
   };
 
+  const aplicarFiltrosVentas = () => {
+    return ventasDia.filter((venta) => {
+      const fechaSplit = venta.fecha.split("/");
+      const [dia, mes, anio] = fechaSplit;
+
+      let fechaValida = true;
+      if (
+        filtros.sabor &&
+        !venta.sabores.toLowerCase().includes(filtros.sabor.toLowerCase())
+      ) {
+        fechaValida = false;
+      }
+      if (filtros.medioPago && venta.metodoPago !== filtros.medioPago) {
+        fechaValida = false;
+      }
+      if (filtros.tipo && venta.tipoHelado !== filtros.tipo) {
+        fechaValida = false;
+      }
+      if (filtros.dia && dia !== filtros.dia) {
+        fechaValida = false;
+      }
+      if (filtros.mes && mes !== filtros.mes) {
+        fechaValida = false;
+      }
+      if (filtros.anio && anio !== filtros.anio) {
+        fechaValida = false;
+      }
+
+      return fechaValida;
+    });
+  };
+
   const limpiarFiltros = () => {
     setFiltros({
       sabor: "",
@@ -242,7 +577,7 @@ const HeladoApp = () => {
             activeSection === "ventas" ? "bg-green text-white" : "bg-gray-300 text-black"
           }`}
         >
-          Ventas del día
+          Ventas
         </button>
       </div>
 
@@ -274,6 +609,7 @@ const HeladoApp = () => {
             handleEdit={handleEdit}
             handleDelete={handleDelete}
           />
+          <ResumenProduccion resumen={resumenProduccion} />
         </div>
       )}
 
@@ -290,6 +626,7 @@ const HeladoApp = () => {
             produccionDia={produccionDia}
           />
           <VentasTable ventasDia={ventasDia} />
+          <ResumenVentas resumen={resumenVentas} />
         </div>
       )}
 
