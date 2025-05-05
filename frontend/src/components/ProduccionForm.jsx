@@ -17,6 +17,7 @@ const ProduccionForm = ({ formData, setFormData, handleSubmitProduccion, editInd
             value={formData.sabor}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded-lg"
+            required
           />
         </div>
         <div>
@@ -26,9 +27,11 @@ const ProduccionForm = ({ formData, setFormData, handleSubmitProduccion, editInd
             value={formData.tipo}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded-lg"
+            required
           >
             <option value="normal">Normal</option>
             <option value="especial">Especial</option>
+            <option value="superEspecial">Super Especial</option>
           </select>
         </div>
         <div>
@@ -39,6 +42,9 @@ const ProduccionForm = ({ formData, setFormData, handleSubmitProduccion, editInd
             value={formData.precioMayor}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded-lg"
+            min="0"
+            step="0.01"
+            required
           />
         </div>
         <div>
@@ -49,16 +55,21 @@ const ProduccionForm = ({ formData, setFormData, handleSubmitProduccion, editInd
             value={formData.precioDetal}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded-lg"
+            min="0"
+            step="0.01"
+            required
           />
         </div>
         <div>
-          <label className="block text-gray-700">Cantidad:</label>
+          <label className="block text-gray-700">Cantidad (unidades):</label>
           <input
             type="number"
             name="cantidad"
             value={formData.cantidad}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded-lg"
+            min="1"
+            required
           />
         </div>
         <div>
@@ -68,6 +79,7 @@ const ProduccionForm = ({ formData, setFormData, handleSubmitProduccion, editInd
             value={formData.maquina}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded-lg"
+            required
           >
             <option value="soft">Soft</option>
             <option value="mantecadora">Mantecadora</option>

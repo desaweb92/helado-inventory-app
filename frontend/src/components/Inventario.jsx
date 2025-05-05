@@ -24,6 +24,12 @@ const Inventario = ({ inventarioActual, totalInventario }) => {
               <td className="border px-4 py-2">{valor}</td>
             </tr>
           ))}
+           {Object.entries(inventarioActual.superEspecial).map(([clave, valor]) => (
+            <tr key={clave}>
+              <td className="border px-4 py-2">{clave}</td>
+              <td className="border px-4 py-2">{valor}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
       <div className="mt-4 font-bold border px-4 py-2">

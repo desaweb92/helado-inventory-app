@@ -36,6 +36,7 @@ const HeladoApp = () => {
   const [inventario, setInventario] = useState({
     normal: {},
     especial: {},
+    superEspecial: {},
   });
   const [filtros, setFiltros] = useState({
     sabor: "",
@@ -89,13 +90,18 @@ const HeladoApp = () => {
     const nuevoInventario = produccionDia.reduce((acc, item) => {
       const clave = `${item.sabor} - ${item.tipo}`;
       const producida = parseInt(item.cantidad || 0, 10);
+      
+      if (!acc[item.tipo]) {
+        acc[item.tipo] = {};
+      }
+      
       if (acc[item.tipo][clave]) {
         acc[item.tipo][clave] += producida;
       } else {
         acc[item.tipo][clave] = producida;
       }
       return acc;
-    }, { normal: {}, especial: {} });
+    }, { normal: {}, especial: {}, superEspecial: {} });
 
     setInventario(nuevoInventario);
   }, [produccionDia]);
@@ -104,148 +110,278 @@ const HeladoApp = () => {
     // Calcular resumen de ventas
     const calcularResumenVentas = () => {
       const filtradas = aplicarFiltrosVentas();
-      const totalVentasDia = filtradas.reduce((total, venta) => total + parseFloat(venta.precioTotal || 0), 0);
-      const totalVentasMes = ventasDia.reduce((total, venta) => {
-        const fechaSplit = venta.fecha.split("/");
-        const mes = fechaSplit[1];
-        if (mes === filtros.mes) {
-          return total + parseFloat(venta.precioTotal || 0);
+      
+      // Inicializar el objeto de resumen
+      const resumen = {
+        totalVentasDia: 0,
+        totalVentasSemana: 0,
+        totalVentasMes: 0,
+        totalVentasAnio: 0,
+        totalEfectivoDia: 0,
+        totalEfectivoSemana: 0,
+        totalEfectivoMes: 0,
+        totalEfectivoAnio: 0,
+        totalPuntoDia: 0,
+        totalPuntoSemana: 0,
+        totalPuntoMes: 0,
+        totalPuntoAnio: 0,
+        totalPagoMovilDia: 0,
+        totalPagoMovilSemana: 0,
+        totalPagoMovilMes: 0,
+        totalPagoMovilAnio: 0,
+        normal: {
+          totalVentasDia: 0,
+          totalVentasSemana: 0,
+          totalVentasMes: 0,
+          totalVentasAnio: 0,
+          totalEfectivoDia: 0,
+          totalEfectivoSemana: 0,
+          totalEfectivoMes: 0,
+          totalEfectivoAnio: 0,
+          totalPuntoDia: 0,
+          totalPuntoSemana: 0,
+          totalPuntoMes: 0,
+          totalPuntoAnio: 0,
+          totalPagoMovilDia: 0,
+          totalPagoMovilSemana: 0,
+          totalPagoMovilMes: 0,
+          totalPagoMovilAnio: 0
+        },
+        especial: {
+          totalVentasDia: 0,
+          totalVentasSemana: 0,
+          totalVentasMes: 0,
+          totalVentasAnio: 0,
+          totalEfectivoDia: 0,
+          totalEfectivoSemana: 0,
+          totalEfectivoMes: 0,
+          totalEfectivoAnio: 0,
+          totalPuntoDia: 0,
+          totalPuntoSemana: 0,
+          totalPuntoMes: 0,
+          totalPuntoAnio: 0,
+          totalPagoMovilDia: 0,
+          totalPagoMovilSemana: 0,
+          totalPagoMovilMes: 0,
+          totalPagoMovilAnio: 0
+        },
+        superEspecial: {
+          totalVentasDia: 0,
+          totalVentasSemana: 0,
+          totalVentasMes: 0,
+          totalVentasAnio: 0,
+          totalEfectivoDia: 0,
+          totalEfectivoSemana: 0,
+          totalEfectivoMes: 0,
+          totalEfectivoAnio: 0,
+          totalPuntoDia: 0,
+          totalPuntoSemana: 0,
+          totalPuntoMes: 0,
+          totalPuntoAnio: 0,
+          totalPagoMovilDia: 0,
+          totalPagoMovilSemana: 0,
+          totalPagoMovilMes: 0,
+          totalPagoMovilAnio: 0
         }
-        return total;
-      }, 0);
-      const totalVentasAnio = ventasDia.reduce((total, venta) => {
-        const fechaSplit = venta.fecha.split("/");
-        const anio = fechaSplit[2];
-        if (anio === filtros.anio) {
-          return total + parseFloat(venta.precioTotal || 0);
+      };
+    
+      // Procesar ventas del día (filtradas)
+      filtradas.forEach(venta => {
+        const precioTotal = parseFloat(venta.precioTotal || 0);
+        const tipo = venta.tipoHelado.toLowerCase();
+        
+        // Totales generales
+        resumen.totalVentasDia += precioTotal;
+        if (venta.metodoPago === 'Efectivo') {
+          resumen.totalEfectivoDia += precioTotal;
+        } else if (venta.metodoPago === 'Punto') {
+          resumen.totalPuntoDia += precioTotal;
+        } else if (venta.metodoPago === 'PagoMovil') {
+          resumen.totalPagoMovilDia += precioTotal;
         }
-        return total;
-      }, 0);
-
-      const totalEfectivoDia = filtradas.reduce((total, venta) => venta.metodoPago === "Efectivo" ? total + parseFloat(venta.precioTotal || 0) : total, 0);
-      const totalEfectivoMes = ventasDia.reduce((total, venta) => {
-        const fechaSplit = venta.fecha.split("/");
-        const mes = fechaSplit[1];
-        if (mes === filtros.mes && venta.metodoPago === "Efectivo") {
-          return total + parseFloat(venta.precioTotal || 0);
+        
+        // Por tipo
+        if (tipo === 'normal') {
+          resumen.normal.totalVentasDia += precioTotal;
+          if (venta.metodoPago === 'Efectivo') {
+            resumen.normal.totalEfectivoDia += precioTotal;
+          } else if (venta.metodoPago === 'Punto') {
+            resumen.normal.totalPuntoDia += precioTotal;
+          } else if (venta.metodoPago === 'PagoMovil') {
+            resumen.normal.totalPagoMovilDia += precioTotal;
+          }
+        } else if (tipo === 'especial') {
+          resumen.especial.totalVentasDia += precioTotal;
+          if (venta.metodoPago === 'Efectivo') {
+            resumen.especial.totalEfectivoDia += precioTotal;
+          } else if (venta.metodoPago === 'Punto') {
+            resumen.especial.totalPuntoDia += precioTotal;
+          } else if (venta.metodoPago === 'PagoMovil') {
+            resumen.especial.totalPagoMovilDia += precioTotal;
+          }
+        } else if (tipo === 'superespecial') {
+          resumen.superEspecial.totalVentasDia += precioTotal;
+          if (venta.metodoPago === 'Efectivo') {
+            resumen.superEspecial.totalEfectivoDia += precioTotal;
+          } else if (venta.metodoPago === 'Punto') {
+            resumen.superEspecial.totalPuntoDia += precioTotal;
+          } else if (venta.metodoPago === 'PagoMovil') {
+            resumen.superEspecial.totalPagoMovilDia += precioTotal;
+          }
         }
-        return total;
-      }, 0);
-      const totalEfectivoAnio = ventasDia.reduce((total, venta) => {
-        const fechaSplit = venta.fecha.split("/");
-        const anio = fechaSplit[2];
-        if (anio === filtros.anio && venta.metodoPago === "Efectivo") {
-          return total + parseFloat(venta.precioTotal || 0);
-        }
-        return total;
-      }, 0);
-
-      const totalPuntoDia = filtradas.reduce((total, venta) => venta.metodoPago === "Punto" ? total + parseFloat(venta.precioTotal || 0) : total, 0);
-      const totalPuntoMes = ventasDia.reduce((total, venta) => {
-        const fechaSplit = venta.fecha.split("/");
-        const mes = fechaSplit[1];
-        if (mes === filtros.mes && venta.metodoPago === "Punto") {
-          return total + parseFloat(venta.precioTotal || 0);
-        }
-        return total;
-      }, 0);
-      const totalPuntoAnio = ventasDia.reduce((total, venta) => {
-        const fechaSplit = venta.fecha.split("/");
-        const anio = fechaSplit[2];
-        if (anio === filtros.anio && venta.metodoPago === "Punto") {
-          return total + parseFloat(venta.precioTotal || 0);
-        }
-        return total;
-      }, 0);
-
-      const totalPagoMovilDia = filtradas.reduce((total, venta) => venta.metodoPago === "PagoMovil" ? total + parseFloat(venta.precioTotal || 0) : total, 0);
-      const totalPagoMovilMes = ventasDia.reduce((total, venta) => {
-        const fechaSplit = venta.fecha.split("/");
-        const mes = fechaSplit[1];
-        if (mes === filtros.mes && venta.metodoPago === "PagoMovil") {
-          return total + parseFloat(venta.precioTotal || 0);
-        }
-        return total;
-      }, 0);
-      const totalPagoMovilAnio = ventasDia.reduce((total, venta) => {
-        const fechaSplit = venta.fecha.split("/");
-        const anio = fechaSplit[2];
-        if (anio === filtros.anio && venta.metodoPago === "PagoMovil") {
-          return total + parseFloat(venta.precioTotal || 0);
-        }
-        return total;
-      }, 0);
-
-      const totalVentasSemana = ventasDia.reduce((total, venta) => {
-        const fecha = new Date(venta.fecha.split("/").reverse().join("-"));
-        const startOfWeek = new Date(fecha);
-        startOfWeek.setDate(fecha.getDate() - fecha.getDay());
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-        if (fecha >= startOfWeek && fecha <= endOfWeek) {
-          return total + parseFloat(venta.precioTotal || 0);
-        }
-        return total;
-      }, 0);
-
-      const totalEfectivoSemana = ventasDia.reduce((total, venta) => {
-        const fecha = new Date(venta.fecha.split("/").reverse().join("-"));
-        const startOfWeek = new Date(fecha);
-        startOfWeek.setDate(fecha.getDate() - fecha.getDay());
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-        if (fecha >= startOfWeek && fecha <= endOfWeek && venta.metodoPago === "Efectivo") {
-          return total + parseFloat(venta.precioTotal || 0);
-        }
-        return total;
-      }, 0);
-
-      const totalPuntoSemana = ventasDia.reduce((total, venta) => {
-        const fecha = new Date(venta.fecha.split("/").reverse().join("-"));
-        const startOfWeek = new Date(fecha);
-        startOfWeek.setDate(fecha.getDate() - fecha.getDay());
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-        if (fecha >= startOfWeek && fecha <= endOfWeek && venta.metodoPago === "Punto") {
-          return total + parseFloat(venta.precioTotal || 0);
-        }
-        return total;
-      }, 0);
-
-      const totalPagoMovilSemana = ventasDia.reduce((total, venta) => {
-        const fecha = new Date(venta.fecha.split("/").reverse().join("-"));
-        const startOfWeek = new Date(fecha);
-        startOfWeek.setDate(fecha.getDate() - fecha.getDay());
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-        if (fecha >= startOfWeek && fecha <= endOfWeek && venta.metodoPago === "PagoMovil") {
-          return total + parseFloat(venta.precioTotal || 0);
-        }
-        return total;
-      }, 0);
-
-      setResumenVentas({
-        totalVentasDia,
-        totalVentasMes,
-        totalVentasAnio,
-        totalVentasSemana,
-        totalEfectivoDia,
-        totalEfectivoMes,
-        totalEfectivoAnio,
-        totalEfectivoSemana,
-        totalPuntoDia,
-        totalPuntoMes,
-        totalPuntoAnio,
-        totalPuntoSemana,
-        totalPagoMovilDia,
-        totalPagoMovilMes,
-        totalPagoMovilAnio,
-        totalPagoMovilSemana,
       });
+    
+      // Procesar ventas semanal, mensual y anual
+      ventasDia.forEach(venta => {
+        const precioTotal = parseFloat(venta.precioTotal || 0);
+        const tipo = venta.tipoHelado.toLowerCase();
+        const fechaSplit = venta.fecha.split('/');
+        const mes = fechaSplit[1];
+        const anio = fechaSplit[2];
+        const fecha = new Date(venta.fecha.split('/').reverse().join('-'));
+        const startOfWeek = new Date(fecha);
+        startOfWeek.setDate(fecha.getDate() - fecha.getDay());
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+    
+        // Totales generales
+        if (mes === filtros.mes) {
+          resumen.totalVentasMes += precioTotal;
+          if (venta.metodoPago === 'Efectivo') {
+            resumen.totalEfectivoMes += precioTotal;
+          } else if (venta.metodoPago === 'Punto') {
+            resumen.totalPuntoMes += precioTotal;
+          } else if (venta.metodoPago === 'PagoMovil') {
+            resumen.totalPagoMovilMes += precioTotal;
+          }
+        }
+        
+        if (anio === filtros.anio) {
+          resumen.totalVentasAnio += precioTotal;
+          if (venta.metodoPago === 'Efectivo') {
+            resumen.totalEfectivoAnio += precioTotal;
+          } else if (venta.metodoPago === 'Punto') {
+            resumen.totalPuntoAnio += precioTotal;
+          } else if (venta.metodoPago === 'PagoMovil') {
+            resumen.totalPagoMovilAnio += precioTotal;
+          }
+        }
+        
+        if (fecha >= startOfWeek && fecha <= endOfWeek) {
+          resumen.totalVentasSemana += precioTotal;
+          if (venta.metodoPago === 'Efectivo') {
+            resumen.totalEfectivoSemana += precioTotal;
+          } else if (venta.metodoPago === 'Punto') {
+            resumen.totalPuntoSemana += precioTotal;
+          } else if (venta.metodoPago === 'PagoMovil') {
+            resumen.totalPagoMovilSemana += precioTotal;
+          }
+        }
+    
+        // Por tipo
+        if (tipo === 'normal') {
+          if (mes === filtros.mes) {
+            resumen.normal.totalVentasMes += precioTotal;
+            if (venta.metodoPago === 'Efectivo') {
+              resumen.normal.totalEfectivoMes += precioTotal;
+            } else if (venta.metodoPago === 'Punto') {
+              resumen.normal.totalPuntoMes += precioTotal;
+            } else if (venta.metodoPago === 'PagoMovil') {
+              resumen.normal.totalPagoMovilMes += precioTotal;
+            }
+          }
+          
+          if (anio === filtros.anio) {
+            resumen.normal.totalVentasAnio += precioTotal;
+            if (venta.metodoPago === 'Efectivo') {
+              resumen.normal.totalEfectivoAnio += precioTotal;
+            } else if (venta.metodoPago === 'Punto') {
+              resumen.normal.totalPuntoAnio += precioTotal;
+            } else if (venta.metodoPago === 'PagoMovil') {
+              resumen.normal.totalPagoMovilAnio += precioTotal;
+            }
+          }
+          
+          if (fecha >= startOfWeek && fecha <= endOfWeek) {
+            resumen.normal.totalVentasSemana += precioTotal;
+            if (venta.metodoPago === 'Efectivo') {
+              resumen.normal.totalEfectivoSemana += precioTotal;
+            } else if (venta.metodoPago === 'Punto') {
+              resumen.normal.totalPuntoSemana += precioTotal;
+            } else if (venta.metodoPago === 'PagoMovil') {
+              resumen.normal.totalPagoMovilSemana += precioTotal;
+            }
+          }
+        } else if (tipo === 'especial') {
+          if (mes === filtros.mes) {
+            resumen.especial.totalVentasMes += precioTotal;
+            if (venta.metodoPago === 'Efectivo') {
+              resumen.especial.totalEfectivoMes += precioTotal;
+            } else if (venta.metodoPago === 'Punto') {
+              resumen.especial.totalPuntoMes += precioTotal;
+            } else if (venta.metodoPago === 'PagoMovil') {
+              resumen.especial.totalPagoMovilMes += precioTotal;
+            }
+          }
+          
+          if (anio === filtros.anio) {
+            resumen.especial.totalVentasAnio += precioTotal;
+            if (venta.metodoPago === 'Efectivo') {
+              resumen.especial.totalEfectivoAnio += precioTotal;
+            } else if (venta.metodoPago === 'Punto') {
+              resumen.especial.totalPuntoAnio += precioTotal;
+            } else if (venta.metodoPago === 'PagoMovil') {
+              resumen.especial.totalPagoMovilAnio += precioTotal;
+            }
+          }
+          
+          if (fecha >= startOfWeek && fecha <= endOfWeek) {
+            resumen.especial.totalVentasSemana += precioTotal;
+            if (venta.metodoPago === 'Efectivo') {
+              resumen.especial.totalEfectivoSemana += precioTotal;
+            } else if (venta.metodoPago === 'Punto') {
+              resumen.especial.totalPuntoSemana += precioTotal;
+            } else if (venta.metodoPago === 'PagoMovil') {
+              resumen.especial.totalPagoMovilSemana += precioTotal;
+            }
+          }
+        } else if (tipo === 'superespecial') {
+          if (mes === filtros.mes) {
+            resumen.superEspecial.totalVentasMes += precioTotal;
+            if (venta.metodoPago === 'Efectivo') {
+              resumen.superEspecial.totalEfectivoMes += precioTotal;
+            } else if (venta.metodoPago === 'Punto') {
+              resumen.superEspecial.totalPuntoMes += precioTotal;
+            } else if (venta.metodoPago === 'PagoMovil') {
+              resumen.superEspecial.totalPagoMovilMes += precioTotal;
+            }
+          }
+          
+          if (anio === filtros.anio) {
+            resumen.superEspecial.totalVentasAnio += precioTotal;
+            if (venta.metodoPago === 'Efectivo') {
+              resumen.superEspecial.totalEfectivoAnio += precioTotal;
+            } else if (venta.metodoPago === 'Punto') {
+              resumen.superEspecial.totalPuntoAnio += precioTotal;
+            } else if (venta.metodoPago === 'PagoMovil') {
+              resumen.superEspecial.totalPagoMovilAnio += precioTotal;
+            }
+          }
+          
+          if (fecha >= startOfWeek && fecha <= endOfWeek) {
+            resumen.superEspecial.totalVentasSemana += precioTotal;
+            if (venta.metodoPago === 'Efectivo') {
+              resumen.superEspecial.totalEfectivoSemana += precioTotal;
+            } else if (venta.metodoPago === 'Punto') {
+              resumen.superEspecial.totalPuntoSemana += precioTotal;
+            } else if (venta.metodoPago === 'PagoMovil') {
+              resumen.superEspecial.totalPagoMovilSemana += precioTotal;
+            }
+          }
+        }
+      });
+    
+      setResumenVentas(resumen);
     };
 
     calcularResumenVentas();
@@ -255,113 +391,230 @@ const HeladoApp = () => {
     // Calcular resumen de producción
     const calcularResumenProduccion = () => {
       const filtradas = aplicarFiltros();
-      const totalProduccionDia = filtradas.reduce((total, item) => total + parseInt(item.cantidad || 0), 0);
-      const totalProduccionMes = produccionDia.reduce((total, item) => {
-        const fechaSplit = item.fecha.split("/");
-        const mes = fechaSplit[1];
-        if (mes === filtros.mes) {
-          return total + parseInt(item.cantidad || 0);
+      
+      // Inicializar el objeto de resumen
+      const resumen = {
+        totalProduccionDia: 0,
+        totalProduccionSemana: 0,
+        totalProduccionMes: 0,
+        totalProduccionAnio: 0,
+        totalMaquinaSoftDia: 0,
+        totalMaquinaSoftSemana: 0,
+        totalMaquinaSoftMes: 0,
+        totalMaquinaSoftAnio: 0,
+        totalMaquinaMantecadoraDia: 0,
+        totalMaquinaMantecadoraSemana: 0,
+        totalMaquinaMantecadoraMes: 0,
+        totalMaquinaMantecadoraAnio: 0,
+        normal: {
+          totalProduccionDia: 0,
+          totalProduccionSemana: 0,
+          totalProduccionMes: 0,
+          totalProduccionAnio: 0,
+          totalMaquinaSoftDia: 0,
+          totalMaquinaSoftSemana: 0,
+          totalMaquinaSoftMes: 0,
+          totalMaquinaSoftAnio: 0,
+          totalMaquinaMantecadoraDia: 0,
+          totalMaquinaMantecadoraSemana: 0,
+          totalMaquinaMantecadoraMes: 0,
+          totalMaquinaMantecadoraAnio: 0
+        },
+        especial: {
+          totalProduccionDia: 0,
+          totalProduccionSemana: 0,
+          totalProduccionMes: 0,
+          totalProduccionAnio: 0,
+          totalMaquinaSoftDia: 0,
+          totalMaquinaSoftSemana: 0,
+          totalMaquinaSoftMes: 0,
+          totalMaquinaSoftAnio: 0,
+          totalMaquinaMantecadoraDia: 0,
+          totalMaquinaMantecadoraSemana: 0,
+          totalMaquinaMantecadoraMes: 0,
+          totalMaquinaMantecadoraAnio: 0
+        },
+        superEspecial: {
+          totalProduccionDia: 0,
+          totalProduccionSemana: 0,
+          totalProduccionMes: 0,
+          totalProduccionAnio: 0,
+          totalMaquinaSoftDia: 0,
+          totalMaquinaSoftSemana: 0,
+          totalMaquinaSoftMes: 0,
+          totalMaquinaSoftAnio: 0,
+          totalMaquinaMantecadoraDia: 0,
+          totalMaquinaMantecadoraSemana: 0,
+          totalMaquinaMantecadoraMes: 0,
+          totalMaquinaMantecadoraAnio: 0
         }
-        return total;
-      }, 0);
-      const totalProduccionAnio = produccionDia.reduce((total, item) => {
-        const fechaSplit = item.fecha.split("/");
-        const anio = fechaSplit[2];
-        if (anio === filtros.anio) {
-          return total + parseInt(item.cantidad || 0);
+      };
+    
+      // Procesar producción del día (filtrada)
+      filtradas.forEach(item => {
+        const cantidad = parseInt(item.cantidad || 0);
+        const tipo = item.tipo.toLowerCase();
+        
+        // Totales generales
+        resumen.totalProduccionDia += cantidad;
+        if (item.maquina === 'soft') {
+          resumen.totalMaquinaSoftDia += cantidad;
+        } else {
+          resumen.totalMaquinaMantecadoraDia += cantidad;
         }
-        return total;
-      }, 0);
-
-      const totalMaquinaSoftDia = filtradas.reduce((total, item) => item.maquina === "soft" ? total + parseInt(item.cantidad || 0) : total, 0);
-      const totalMaquinaSoftMes = produccionDia.reduce((total, item) => {
-        const fechaSplit = item.fecha.split("/");
-        const mes = fechaSplit[1];
-        if (mes === filtros.mes && item.maquina === "soft") {
-          return total + parseInt(item.cantidad || 0);
+        
+        // Por tipo
+        if (tipo === 'normal') {
+          resumen.normal.totalProduccionDia += cantidad;
+          if (item.maquina === 'soft') {
+            resumen.normal.totalMaquinaSoftDia += cantidad;
+          } else {
+            resumen.normal.totalMaquinaMantecadoraDia += cantidad;
+          }
+        } else if (tipo === 'especial') {
+          resumen.especial.totalProduccionDia += cantidad;
+          if (item.maquina === 'soft') {
+            resumen.especial.totalMaquinaSoftDia += cantidad;
+          } else {
+            resumen.especial.totalMaquinaMantecadoraDia += cantidad;
+          }
+        } else if (tipo === 'superespecial') {
+          resumen.superEspecial.totalProduccionDia += cantidad;
+          if (item.maquina === 'soft') {
+            resumen.superEspecial.totalMaquinaSoftDia += cantidad;
+          } else {
+            resumen.superEspecial.totalMaquinaMantecadoraDia += cantidad;
+          }
         }
-        return total;
-      }, 0);
-      const totalMaquinaSoftAnio = produccionDia.reduce((total, item) => {
-        const fechaSplit = item.fecha.split("/");
-        const anio = fechaSplit[2];
-        if (anio === filtros.anio && item.maquina === "soft") {
-          return total + parseInt(item.cantidad || 0);
-        }
-        return total;
-      }, 0);
-
-      const totalMaquinaMantecadoraDia = filtradas.reduce((total, item) => item.maquina === "mantecadora" ? total + parseInt(item.cantidad || 0) : total, 0);
-      const totalMaquinaMantecadoraMes = produccionDia.reduce((total, item) => {
-        const fechaSplit = item.fecha.split("/");
-        const mes = fechaSplit[1];
-        if (mes === filtros.mes && item.maquina === "mantecadora") {
-          return total + parseInt(item.cantidad || 0);
-        }
-        return total;
-      }, 0);
-      const totalMaquinaMantecadoraAnio = produccionDia.reduce((total, item) => {
-        const fechaSplit = item.fecha.split("/");
-        const anio = fechaSplit[2];
-        if (anio === filtros.anio && item.maquina === "mantecadora") {
-          return total + parseInt(item.cantidad || 0);
-        }
-        return total;
-      }, 0);
-
-      const totalProduccionSemana = produccionDia.reduce((total, item) => {
-        const fecha = new Date(item.fecha.split("/").reverse().join("-"));
-        const startOfWeek = new Date(fecha);
-        startOfWeek.setDate(fecha.getDate() - fecha.getDay());
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-        if (fecha >= startOfWeek && fecha <= endOfWeek) {
-          return total + parseInt(item.cantidad || 0);
-        }
-        return total;
-      }, 0);
-
-      const totalMaquinaSoftSemana = produccionDia.reduce((total, item) => {
-        const fecha = new Date(item.fecha.split("/").reverse().join("-"));
-        const startOfWeek = new Date(fecha);
-        startOfWeek.setDate(fecha.getDate() - fecha.getDay());
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-        if (fecha >= startOfWeek && fecha <= endOfWeek && item.maquina === "soft") {
-          return total + parseInt(item.cantidad || 0);
-        }
-        return total;
-      }, 0);
-
-      const totalMaquinaMantecadoraSemana = produccionDia.reduce((total, item) => {
-        const fecha = new Date(item.fecha.split("/").reverse().join("-"));
-        const startOfWeek = new Date(fecha);
-        startOfWeek.setDate(fecha.getDate() - fecha.getDay());
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-        if (fecha >= startOfWeek && fecha <= endOfWeek && item.maquina === "mantecadora") {
-          return total + parseInt(item.cantidad || 0);
-        }
-        return total;
-      }, 0);
-
-      setResumenProduccion({
-        totalProduccionDia,
-        totalProduccionMes,
-        totalProduccionAnio,
-        totalProduccionSemana,
-        totalMaquinaSoftDia,
-        totalMaquinaSoftMes,
-        totalMaquinaSoftAnio,
-        totalMaquinaSoftSemana,
-        totalMaquinaMantecadoraDia,
-        totalMaquinaMantecadoraMes,
-        totalMaquinaMantecadoraAnio,
-        totalMaquinaMantecadoraSemana,
       });
+    
+      // Procesar producción semanal, mensual y anual
+      produccionDia.forEach(item => {
+        const cantidad = parseInt(item.cantidad || 0);
+        const tipo = item.tipo.toLowerCase();
+        const fechaSplit = item.fecha.split('/');
+        const mes = fechaSplit[1];
+        const anio = fechaSplit[2];
+        const fecha = new Date(item.fecha.split('/').reverse().join('-'));
+        const startOfWeek = new Date(fecha);
+        startOfWeek.setDate(fecha.getDate() - fecha.getDay());
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+    
+        // Totales generales
+        if (mes === filtros.mes) {
+          resumen.totalProduccionMes += cantidad;
+          if (item.maquina === 'soft') {
+            resumen.totalMaquinaSoftMes += cantidad;
+          } else {
+            resumen.totalMaquinaMantecadoraMes += cantidad;
+          }
+        }
+        
+        if (anio === filtros.anio) {
+          resumen.totalProduccionAnio += cantidad;
+          if (item.maquina === 'soft') {
+            resumen.totalMaquinaSoftAnio += cantidad;
+          } else {
+            resumen.totalMaquinaMantecadoraAnio += cantidad;
+          }
+        }
+        
+        if (fecha >= startOfWeek && fecha <= endOfWeek) {
+          resumen.totalProduccionSemana += cantidad;
+          if (item.maquina === 'soft') {
+            resumen.totalMaquinaSoftSemana += cantidad;
+          } else {
+            resumen.totalMaquinaMantecadoraSemana += cantidad;
+          }
+        }
+    
+        // Por tipo
+        if (tipo === 'normal') {
+          if (mes === filtros.mes) {
+            resumen.normal.totalProduccionMes += cantidad;
+            if (item.maquina === 'soft') {
+              resumen.normal.totalMaquinaSoftMes += cantidad;
+            } else {
+              resumen.normal.totalMaquinaMantecadoraMes += cantidad;
+            }
+          }
+          
+          if (anio === filtros.anio) {
+            resumen.normal.totalProduccionAnio += cantidad;
+            if (item.maquina === 'soft') {
+              resumen.normal.totalMaquinaSoftAnio += cantidad;
+            } else {
+              resumen.normal.totalMaquinaMantecadoraAnio += cantidad;
+            }
+          }
+          
+          if (fecha >= startOfWeek && fecha <= endOfWeek) {
+            resumen.normal.totalProduccionSemana += cantidad;
+            if (item.maquina === 'soft') {
+              resumen.normal.totalMaquinaSoftSemana += cantidad;
+            } else {
+              resumen.normal.totalMaquinaMantecadoraSemana += cantidad;
+            }
+          }
+        } else if (tipo === 'especial') {
+          if (mes === filtros.mes) {
+            resumen.especial.totalProduccionMes += cantidad;
+            if (item.maquina === 'soft') {
+              resumen.especial.totalMaquinaSoftMes += cantidad;
+            } else {
+              resumen.especial.totalMaquinaMantecadoraMes += cantidad;
+            }
+          }
+          
+          if (anio === filtros.anio) {
+            resumen.especial.totalProduccionAnio += cantidad;
+            if (item.maquina === 'soft') {
+              resumen.especial.totalMaquinaSoftAnio += cantidad;
+            } else {
+              resumen.especial.totalMaquinaMantecadoraAnio += cantidad;
+            }
+          }
+          
+          if (fecha >= startOfWeek && fecha <= endOfWeek) {
+            resumen.especial.totalProduccionSemana += cantidad;
+            if (item.maquina === 'soft') {
+              resumen.especial.totalMaquinaSoftSemana += cantidad;
+            } else {
+              resumen.especial.totalMaquinaMantecadoraSemana += cantidad;
+            }
+          }
+        } else if (tipo === 'superespecial') {
+          if (mes === filtros.mes) {
+            resumen.superEspecial.totalProduccionMes += cantidad;
+            if (item.maquina === 'soft') {
+              resumen.superEspecial.totalMaquinaSoftMes += cantidad;
+            } else {
+              resumen.superEspecial.totalMaquinaMantecadoraMes += cantidad;
+            }
+          }
+          
+          if (anio === filtros.anio) {
+            resumen.superEspecial.totalProduccionAnio += cantidad;
+            if (item.maquina === 'soft') {
+              resumen.superEspecial.totalMaquinaSoftAnio += cantidad;
+            } else {
+              resumen.superEspecial.totalMaquinaMantecadoraAnio += cantidad;
+            }
+          }
+          
+          if (fecha >= startOfWeek && fecha <= endOfWeek) {
+            resumen.superEspecial.totalProduccionSemana += cantidad;
+            if (item.maquina === 'soft') {
+              resumen.superEspecial.totalMaquinaSoftSemana += cantidad;
+            } else {
+              resumen.superEspecial.totalMaquinaMantecadoraSemana += cantidad;
+            }
+          }
+        }
+      });
+    
+      setResumenProduccion(resumen);
     };
 
     calcularResumenProduccion();
@@ -371,6 +624,9 @@ const HeladoApp = () => {
     (total, cantidad) => total + cantidad,
     0
   ) + Object.values(inventario.especial).reduce(
+    (total, cantidad) => total + cantidad,
+    0
+  ) + Object.values(inventario.superEspecial).reduce(
     (total, cantidad) => total + cantidad,
     0
   );
@@ -408,7 +664,7 @@ const HeladoApp = () => {
     const nuevoInventario = { ...inventario };
     nuevasVentas.forEach(venta => {
       const clave = `${venta.sabores} - ${venta.tipoHelado}`;
-      if (nuevoInventario[venta.tipoHelado][clave]) {
+      if (nuevoInventario[venta.tipoHelado] && nuevoInventario[venta.tipoHelado][clave]) {
         nuevoInventario[venta.tipoHelado][clave] -= venta.cantidadVendida;
       }
     });
@@ -451,10 +707,11 @@ const HeladoApp = () => {
     doc.text("Reporte de Producción de Helados", 10, 10);
     doc.autoTable({
       startY: 20,
-      head: [["Fecha", "Sabor", "Cantidad", "Máquina"]],
+      head: [["Fecha", "Sabor", "Tipo", "Cantidad", "Máquina"]],
       body: produccionDia.map((item) => [
         item.fecha,
         item.sabor,
+        item.tipo,
         item.cantidad,
         item.maquina,
       ]),
