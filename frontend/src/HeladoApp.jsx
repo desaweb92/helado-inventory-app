@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import ProduccionForm from "./components/ProduccionForm";
 import VentasForm from "./components/VentasForm";
 import Inventario from "./components/Inventario";
@@ -703,22 +703,80 @@ const HeladoApp = () => {
   };
 
   const exportToPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Reporte de Producción de Helados", 10, 10);
-    doc.autoTable({
-      startY: 20,
-      head: [["Fecha", "Sabor", "Tipo", "Cantidad", "Máquina"]],
-      body: produccionDia.map((item) => [
-        item.fecha,
-        item.sabor,
-        item.tipo,
-        item.cantidad,
-        item.maquina,
-      ]),
-    });
-    doc.save("produccion_helados.pdf");
+    try {
+      const doc = new jsPDF();
+      
+      // Configuración de estilos
+      const colorPrincipal = '#E91E63'; // Fucsia
+      const colorSecundario = '#4CAF50'; // Verde
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // Logo (reemplaza con tu imagen)
+      const logoUrl = 'https://i.imgur.com/GkhD8en.jpg';
+      doc.addImage(logoUrl, 'JPEG', pageWidth - 30, 10, 20, 20);
+      
+      // Encabezado
+      doc.setFontSize(18);
+      doc.setTextColor(colorPrincipal);
+      doc.text("Reporte de Producción de Helados", pageWidth / 2, 20, { align: 'center' });
+      
+      // Fecha del reporte
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Generado: ${new Date().toLocaleDateString()}`, 14, 30);
+      
+      // Tabla con estilos
+      autoTable(doc, {
+        startY: 40,
+        head: [
+          [
+            { content: "Fecha", styles: { fillColor: colorSecundario } },
+            { content: "Sabor", styles: { fillColor: colorSecundario } },
+            { content: "Tipo", styles: { fillColor: colorSecundario } },
+            { content: "Cantidad", styles: { fillColor: colorSecundario } },
+            { content: "Máquina", styles: { fillColor: colorSecundario } }
+          ]
+        ],
+        body: produccionDia.map((item) => [
+          item.fecha,
+          item.sabor,
+          item.tipo,
+          `${item.cantidad}`,
+          item.maquina
+        ]),
+        headStyles: {
+          textColor: 255, // Texto blanco
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        },
+        margin: { left: 14, right: 14 },
+        styles: {
+          fontSize: 9,
+          cellPadding: 3,
+          overflow: 'linebreak'
+        }
+      });
+      
+      // Pie de página
+      const finalY = doc.lastAutoTable.finalY + 10;
+      doc.setDrawColor(colorPrincipal);
+      doc.setLineWidth(0.3);
+      doc.line(14, finalY, pageWidth - 14, finalY);
+      
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      doc.text("Helados para todos - Sistema de Producción", pageWidth / 2, finalY + 10, { align: 'center' });
+      
+      // Guardar PDF
+      doc.save(`reporte_produccion_${new Date().getTime()}.pdf`);
+      
+    } catch (error) {
+      console.error("Error al generar el PDF:", error);
+      alert("Ocurrió un error al generar el reporte. Por favor intente nuevamente.");
+    }
   };
-
   const aplicarFiltros = () => {
     return produccionDia.filter((item) => {
       const fechaSplit = item.fecha.split("/");
