@@ -2,150 +2,212 @@ import React, { useEffect, useState } from "react";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
-const VentasForm = ({ ventaData, setVentaData, handleSubmitVenta, produccionDia }) => {
+const VentasForm = ({
+  ventaData,
+  setVentaData,
+  handleSubmitVenta,
+  produccionDia,
+}) => {
   const [saboresDisponibles, setSaboresDisponibles] = useState([]);
   const [saboresSeleccionados, setSaboresSeleccionados] = useState([]);
+  const [tasaBCV, setTasaBCV] = useState({ valor: 0, fecha: '' }); // Estado para tasaBCV
   const logoOriginalAncho = 800; // Ancho original en píxeles de tu imagen
-const logoOriginalAlto = 600; 
-  const logoAncho = 30; 
+  const logoOriginalAlto = 600;
+  const logoAncho = 30;
   const logoAlto = (logoAncho * logoOriginalAlto) / logoOriginalAncho;
+
+  const fetchTasaBCV = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/tasa');
+      if (!response.ok) throw new Error("Error al obtener tasa BCV");
+      const data = await response.json();
+      setTasaBCV(data); // Actualiza el estado con la tasa BCV
+    } catch (error) {
+      console.error("Error obteniendo tasa BCV:", error);
+      // Mantiene el valor por defecto si hay error
+    }
+  };
+
+  useEffect(() => {
+    fetchTasaBCV(); // Llama a la función para obtener la tasa BCV al montar el componente
+  }, []);
+
   // Función para generar la factura en PDF
-  const generarFacturaPDF = (venta) => {
+  const generarFacturaPDF = async (venta) => {  // Cambiado a async
     try {
       const doc = new jsPDF();
-      
+
+    
       // Colores corporativos
-      const colorFucsia = '#E91E63';
-      const colorVerde = '#4CAF50';
-      const colorVerdeOscuro = '#388E3C';
-      
+      const colorFucsia = "#E91E63";
+      const colorVerde = "#4CAF50";
+      const colorVerdeOscuro = "#388E3C";
+
       // Logo (reemplaza con tu imagen base64 o URL)
-      const logoUrl = 'https://i.imgur.com/GkhD8en.jpg'; // Reemplaza esto con tu logo
-      doc.addImage(logoUrl, 'JPEG', 150, 15, logoAncho, logoAlto);
-      
+      const logoUrl = "https://i.imgur.com/GkhD8en.jpg";
+      doc.addImage(logoUrl, "JPEG", 150, 15, logoAncho, logoAlto);
+
       // Fecha alineada a la izquierda
       const fecha = new Date();
-      const fechaFormateada = `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
+      const fechaFormateada = `${fecha.getDate()}/${
+        fecha.getMonth() + 1
+      }/${fecha.getFullYear()}`;
       doc.setFontSize(10);
       doc.setTextColor(100);
       doc.text(`Fecha: ${fechaFormateada}`, 14, 20);
-      
+
       // Encabezado con colores corporativos
       doc.setFontSize(18);
       doc.setTextColor(colorFucsia);
       doc.text("Helados para todos", 105, 30, { align: "center" });
-      
+
       doc.setFontSize(14);
       doc.setTextColor(colorVerde);
       doc.text("FACTURA", 105, 40, { align: "center" });
-      
+
       // Línea decorativa
       doc.setDrawColor(colorFucsia);
       doc.setLineWidth(0.5);
       doc.line(14, 45, 196, 45);
-      
+
       // Información de la factura
       doc.setFontSize(10);
       doc.setTextColor(100);
       doc.text(`Factura #${Math.floor(Math.random() * 10000)}`, 14, 55);
-      
+
       // Datos del cliente
       doc.setFontSize(12);
       doc.setTextColor(colorFucsia);
       doc.text("Datos del Cliente", 14, 65);
-      
+
       doc.setFontSize(10);
       doc.setTextColor(60);
       doc.text("Nombre: Cliente General", 14, 75);
       doc.text("RIF/CI: ----------", 14, 85);
       doc.text("Dirección: ----------", 14, 95);
-      
+
       // Línea decorativa
       doc.setDrawColor(colorVerde);
       doc.line(14, 100, 196, 100);
-      
+
       // Detalles de la venta
       doc.setFontSize(12);
       doc.setTextColor(colorFucsia);
       doc.text("Detalles de la Venta", 14, 110);
-      
+
       // Tabla con estilo verde
       autoTable(doc, {
         startY: 120,
-        head: [['Producto', 'Tipo', 'Cantidad', 'P. Unitario', 'Subtotal']],
+        head: [["Producto", "Tipo", "Cantidad", "P. Unitario", "Subtotal"]],
         body: [
           [
-            venta.sabores || 'N/A',
-            venta.tipoHelado === 'normal' ? 'Normal' :
-            venta.tipoHelado === 'especial' ? 'Especial' : 'Super Especial',
+            venta.sabores || "N/A",
+            venta.tipoHelado === "normal"
+              ? "Normal"
+              : venta.tipoHelado === "especial"
+              ? "Especial"
+              : "Super Especial",
             venta.cantidadVendida || 0,
             `$${(venta.precioTotal / (venta.cantidadVendida || 1)).toFixed(2)}`,
-            `$${(venta.precioTotal || 0).toFixed(2)}`
-          ]
+            `$${(venta.precioTotal || 0).toFixed(2)}`,
+          ],
         ],
-        theme: 'grid',
+        theme: "grid",
         headStyles: {
           fillColor: colorVerdeOscuro,
           textColor: 255,
-          fontStyle: 'bold',
-          fontSize: 10
+          fontStyle: "bold",
+          fontSize: 10,
         },
         bodyStyles: {
           textColor: 60,
-          fontSize: 9
+          fontSize: 9,
         },
         alternateRowStyles: {
-          fillColor: [238, 238, 238]
+          fillColor: [238, 238, 238],
         },
-        margin: { left: 14, right: 14 }
+        margin: { left: 14, right: 14 },
       });
-      
+
       // Totales con estilo
       const subtotal = parseFloat(venta.precioTotal) || 0;
       const iva = subtotal * 0.16;
       const total = subtotal + iva;
-      
+
       doc.setFontSize(10);
       doc.setTextColor(60);
       doc.text("Subtotal:", 150, doc.lastAutoTable.finalY + 15);
-      doc.text(`$${subtotal.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 15, { align: "right" });
-      
+      doc.text(`$${subtotal.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 15, {
+        align: "right",
+      });
+
       doc.text("IVA (16%):", 150, doc.lastAutoTable.finalY + 25);
-      doc.text(`$${iva.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 25, { align: "right" });
-      
+      doc.text(`$${iva.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 25, {
+        align: "right",
+      });
+
       doc.setFontSize(11);
       doc.setTextColor(colorFucsia);
-      doc.setFont(undefined, 'bold');
+      doc.setFont(undefined, "bold");
       doc.text("TOTAL:", 150, doc.lastAutoTable.finalY + 35);
-      doc.text(`$${total.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 35, { align: "right" });
-      
+      doc.text(`$${total.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 35, {
+        align: "right",
+      });
+
+      // Tasa BCV (ajustado)
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      doc.text(
+        `Tasa BCV: 1 USD = ${(tasaBCV.valor || 0).toFixed(2)} Bs (${tasaBCV.fecha || 'No disponible'})`,
+        14,
+        doc.lastAutoTable.finalY + 45
+      );
+
       // Método de pago
       doc.setFontSize(10);
       doc.setTextColor(60);
-      doc.text(`Método de Pago: ${venta.metodoPago || 'No especificado'}`, 14, doc.lastAutoTable.finalY + 50);
-      
-      // Pie de página con estilo
+      doc.text(
+        `Método de Pago: ${venta.metodoPago || "No especificado"}`,
+        14,
+        doc.lastAutoTable.finalY + 50
+      );
+
+      // Pie de página
       doc.setDrawColor(colorVerde);
-      doc.line(14, doc.lastAutoTable.finalY + 60, 196, doc.lastAutoTable.finalY + 60);
-      
+      doc.line(
+        14,
+        doc.lastAutoTable.finalY + 60,
+        196,
+        doc.lastAutoTable.finalY + 60
+      );
+
       doc.setFontSize(9);
       doc.setTextColor(colorFucsia);
-      doc.text("¡Gracias por su compra!", 105, doc.lastAutoTable.finalY + 70, { align: "center" });
-      
+      doc.text("¡Gracias por su compra!", 105, doc.lastAutoTable.finalY + 70, {
+        align: "center",
+      });
+
       doc.setFontSize(8);
       doc.setTextColor(100);
-      doc.text("Helados para todos - RIF:  J-50502124-9", 105, doc.lastAutoTable.finalY + 80, { align: "center" });
-      doc.text("Teléfono: 0412-3689362, 0412-0837988, 0424-9559493 | @heladosparatodos.mat", 105, doc.lastAutoTable.finalY + 86, { align: "center" });
-      
-      // Guardar el PDF
+      doc.text(
+        "Helados para todos - RIF: J-50502124-9",
+        105,
+        doc.lastAutoTable.finalY + 80,
+        { align: "center" }
+      );
+      doc.text(
+        "Teléfono: 0412-3689362, 0412-0837988, 0424-9559493 | @heladosparatodos.mat",
+        105,
+        doc.lastAutoTable.finalY + 86,
+        { align: "center" }
+      );
+
       doc.save(`factura_${new Date().getTime()}.pdf`);
     } catch (error) {
       console.error("Error al generar el PDF:", error);
       alert("Hubo un error al generar la factura. Por favor intente nuevamente.");
     }
   };
-  
-  
 
   const handleChange = (e) => {
     setVentaData({ ...ventaData, [e.target.name]: e.target.value });
@@ -191,14 +253,16 @@ const logoOriginalAlto = 600;
     const calcularPrecios = () => {
       let precioTotal = 0;
       let cantidadTotal = 0;
-  
+
       const newSabores = saboresSeleccionados.map((sabor) => {
         const produccion = produccionDia.find(
           (item) => item.sabor === sabor.sabor && item.tipo === sabor.tipoHelado
         );
         if (produccion) {
           const precio =
-            ventaData.tipoVenta === "mayor" ? produccion.precioMayor : produccion.precioDetal;
+            ventaData.tipoVenta === "mayor"
+              ? produccion.precioMayor
+              : produccion.precioDetal;
           const precioTotalSabor = precio * sabor.cantidad;
           precioTotal += precioTotalSabor;
           cantidadTotal += sabor.cantidad;
@@ -206,62 +270,76 @@ const logoOriginalAlto = 600;
         }
         return sabor;
       });
-  
+
       // Comparar antes de actualizar
       if (JSON.stringify(newSabores) !== JSON.stringify(saboresSeleccionados)) {
         setSaboresSeleccionados(newSabores);
       }
-  
+
       const newVentaData = {
         ...ventaData,
         precioTotal: precioTotal.toString(),
         cantidadVendida: cantidadTotal.toString(),
-        sabores: newSabores.map((sabor) => `${sabor.sabor} (${sabor.tipoHelado})`).join(", "),
+        sabores: newSabores
+          .map((sabor) => `${sabor.sabor} (${sabor.tipoHelado})`)
+          .join(", "),
       };
-  
+
       // Comparar antes de actualizar
       if (JSON.stringify(newVentaData) !== JSON.stringify(ventaData)) {
         setVentaData(newVentaData);
       }
     };
-  
+
     calcularPrecios();
   }, [saboresSeleccionados, ventaData.tipoVenta, produccionDia]);
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const nuevasVentas = saboresSeleccionados.map((sabor) => ({
-        fecha: new Date().toLocaleDateString('es-ES'),
+        fecha: new Date().toLocaleDateString("es-ES"),
         tipoVenta: ventaData.tipoVenta,
         cantidadVendida: sabor.cantidad,
         precioTotal: sabor.precioTotalSabor,
         sabores: sabor.sabor,
         tipoHelado: sabor.tipoHelado,
         metodoPago: ventaData.metodoPago,
+        observaciones: ventaData.observaciones,
       }));
-      
+
       // Primero procesar la venta
       await handleSubmitVenta(nuevasVentas);
-      
+
       // Luego generar los PDFs
-      nuevasVentas.forEach(venta => {
+      nuevasVentas.forEach((venta) => {
         setTimeout(() => generarFacturaPDF(venta), 100);
       });
-      
+
       setSaboresSeleccionados([]);
     } catch (error) {
       console.error("Error al procesar la venta:", error);
-      alert("Hubo un error al procesar la venta. Por favor intente nuevamente.");
+      alert(
+        "Hubo un error al procesar la venta. Por favor intente nuevamente."
+      );
     }
   };
 
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Registro de Ventas</h1>
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Muestra la tasa actual */}
+        <div className="bg-blue-50 p-3 rounded mb-4">
+        <p className="text-sm">
+          <span className="font-semibold">Tasa BCV actual: </span>
+          1 USD = {tasaBCV.valor.toFixed(2)} Bs (Actualizado: {tasaBCV.fecha})
+        </p>
+      </div>
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
         <div>
           <label className="block text-gray-700">Tipo de Venta:</label>
           <select
@@ -311,8 +389,23 @@ const logoOriginalAlto = 600;
             <option value="Efectivo">Efectivo</option>
           </select>
         </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-gray-700">Observaciones:</label>
+          <textarea
+            name="observaciones"
+            value={ventaData.observaciones || ""}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border rounded-lg"
+            rows="2"
+            placeholder="Ingrese cualquier comentario sobre la venta"
+          />
+        </div>
         {saboresSeleccionados.map((sabor, index) => (
-          <div key={index} className="md:col-span-2 grid grid-cols-1 md:grid-cols-5 gap-2 mb-4">
+          <div
+            key={index}
+            className="md:col-span-2 grid grid-cols-1 md:grid-cols-5 gap-2 mb-4"
+          >
             <div className="col-span-1">
               <label className="block text-gray-700 text-sm">Sabor</label>
               <select
@@ -393,6 +486,5 @@ const logoOriginalAlto = 600;
     </div>
   );
 };
-
 
 export default VentasForm;

@@ -57,6 +57,7 @@ const VentasTable = ({ ventasDia }) => {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Sabores</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Tipo Helado</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Método Pago</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Observaciones</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -91,6 +92,9 @@ const VentasTable = ({ ventasDia }) => {
                         {formatearMetodoPago(item.metodoPago)}
                       </span>
                     </td>
+                    <td className="px-4 py-3 whitespace-normal text-sm text-gray-700 max-w-xs truncate" title={item.observaciones}>
+  {item.observaciones || '-'}
+</td>
                   </tr>
                 ))}
               </tbody>
@@ -160,6 +164,10 @@ const VentasTable = ({ ventasDia }) => {
                       </span>
                     </p>
                   </div>
+                  <div className="col-span-2">
+  <p className="text-xs font-medium text-gray-500">Observaciones</p>
+  <p className="text-sm text-gray-900">{item.observaciones || '-'}</p>
+</div>
                 </div>
               </div>
             ))}

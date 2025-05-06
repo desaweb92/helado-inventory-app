@@ -1,13 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Dashboard from './components/Dashboard';
 import HeladoApp from './HeladoApp';
+import TasaBCV from './components/TasaBCV';
 const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/helados" element={<HeladoApp />} />
+        <Route path="/" element={<HeladoApp />} />
+        <Route path="/TasaBCV" element={<TasaBCV />} />
       </Routes>
     </Router>
   );
