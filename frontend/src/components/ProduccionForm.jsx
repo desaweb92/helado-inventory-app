@@ -35,30 +35,34 @@ const ProduccionForm = ({ formData, setFormData, handleSubmitProduccion, editInd
           </select>
         </div>
         <div>
-          <label className="block text-gray-700">Precio al por mayor:</label>
-          <input
-            type="number"
-            name="precioMayor"
-            value={formData.precioMayor}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-lg"
-            min="0"
-            step="0.01"
-            required
-          />
+          <label className="block mb-1">Precio al por mayor (USD):</label>
+          <div className="flex">
+            <input
+              type="number"
+              name="precioMayor"
+              value={formData.precioMayor}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              step="0.01"
+              min="0"
+            />
+            <span className="ml-2 p-2 bg-gray-200 rounded">USD</span>
+          </div>
         </div>
         <div>
-          <label className="block text-gray-700">Precio al detal:</label>
-          <input
-            type="number"
-            name="precioDetal"
-            value={formData.precioDetal}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-lg"
-            min="0"
-            step="0.01"
-            required
-          />
+          <label className="block mb-1">Precio al detal (Bs):</label>
+          <div className="flex">
+            <input
+              type="number"
+              name="precioDetal"
+              value={formData.precioDetal}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              step="0.01"
+              min="0"
+            />
+            <span className="ml-2 p-2 bg-gray-200 rounded">Bs</span>
+          </div>
         </div>
         <div>
           <label className="block text-gray-700">Cantidad (unidades):</label>

@@ -18,6 +18,8 @@ const HeladoApp = () => {
     tipo: "normal",
     precioMayor: "",
     precioDetal: "",
+    monedaMayor: "USD",
+    monedaDetal: "Bs",
     cantidad: "",
     maquina: "soft",
   });
@@ -75,6 +77,8 @@ const HeladoApp = () => {
     totalProduccionMes: 0,
     totalProduccionAnio: 0,
     totalProduccionSemana: 0,
+    totalPrecioMayor: 0, // Nuevo campo
+    totalPrecioDetal: 0, // Nuevo campo
     totalMaquinaSoftDia: 0,
     totalMaquinaSoftMes: 0,
     totalMaquinaSoftAnio: 0,
@@ -83,7 +87,56 @@ const HeladoApp = () => {
     totalMaquinaMantecadoraMes: 0,
     totalMaquinaMantecadoraAnio: 0,
     totalMaquinaMantecadoraSemana: 0,
+    normal: {
+      totalProduccionDia: 0,
+      totalProduccionMes: 0,
+      totalProduccionAnio: 0,
+      totalProduccionSemana: 0,
+      totalPrecioMayor: 0, // Nuevo campo
+      totalPrecioDetal: 0, // Nuevo campo
+      totalMaquinaSoftDia: 0,
+      totalMaquinaSoftMes: 0,
+      totalMaquinaSoftAnio: 0,
+      totalMaquinaSoftSemana: 0,
+      totalMaquinaMantecadoraDia: 0,
+      totalMaquinaMantecadoraMes: 0,
+      totalMaquinaMantecadoraAnio: 0,
+      totalMaquinaMantecadoraSemana: 0
+    },
+    especial: {
+         totalProduccionDia: 0,
+      totalProduccionMes: 0,
+      totalProduccionAnio: 0,
+      totalProduccionSemana: 0,
+      totalPrecioMayor: 0, // Nuevo campo
+      totalPrecioDetal: 0, // Nuevo campo
+      totalMaquinaSoftDia: 0,
+      totalMaquinaSoftMes: 0,
+      totalMaquinaSoftAnio: 0,
+      totalMaquinaSoftSemana: 0,
+      totalMaquinaMantecadoraDia: 0,
+      totalMaquinaMantecadoraMes: 0,
+      totalMaquinaMantecadoraAnio: 0,
+      totalMaquinaMantecadoraSemana: 0
+    },
+    superEspecial: {
+         totalProduccionDia: 0,
+      totalProduccionMes: 0,
+      totalProduccionAnio: 0,
+      totalProduccionSemana: 0,
+      totalPrecioMayor: 0, // Nuevo campo
+      totalPrecioDetal: 0, // Nuevo campo
+      totalMaquinaSoftDia: 0,
+      totalMaquinaSoftMes: 0,
+      totalMaquinaSoftAnio: 0,
+      totalMaquinaSoftSemana: 0,
+      totalMaquinaMantecadoraDia: 0,
+      totalMaquinaMantecadoraMes: 0,
+      totalMaquinaMantecadoraAnio: 0,
+      totalMaquinaMantecadoraSemana: 0
+    }
   });
+  
 
   useEffect(() => {
     // Actualizar el inventario cuando cambie la producción del día
@@ -398,6 +451,8 @@ const HeladoApp = () => {
         totalProduccionSemana: 0,
         totalProduccionMes: 0,
         totalProduccionAnio: 0,
+        totalPrecioMayor: 0,
+        totalPrecioDetal: 0,
         totalMaquinaSoftDia: 0,
         totalMaquinaSoftSemana: 0,
         totalMaquinaSoftMes: 0,
@@ -411,6 +466,8 @@ const HeladoApp = () => {
           totalProduccionSemana: 0,
           totalProduccionMes: 0,
           totalProduccionAnio: 0,
+          totalPrecioMayor: 0,
+          totalPrecioDetal: 0,
           totalMaquinaSoftDia: 0,
           totalMaquinaSoftSemana: 0,
           totalMaquinaSoftMes: 0,
@@ -425,6 +482,8 @@ const HeladoApp = () => {
           totalProduccionSemana: 0,
           totalProduccionMes: 0,
           totalProduccionAnio: 0,
+          totalPrecioMayor: 0,
+          totalPrecioDetal: 0,    
           totalMaquinaSoftDia: 0,
           totalMaquinaSoftSemana: 0,
           totalMaquinaSoftMes: 0,
@@ -439,6 +498,8 @@ const HeladoApp = () => {
           totalProduccionSemana: 0,
           totalProduccionMes: 0,
           totalProduccionAnio: 0,
+          totalPrecioMayor: 0,
+          totalPrecioDetal: 0,
           totalMaquinaSoftDia: 0,
           totalMaquinaSoftSemana: 0,
           totalMaquinaSoftMes: 0,
@@ -454,6 +515,11 @@ const HeladoApp = () => {
       filtradas.forEach(item => {
         const cantidad = parseInt(item.cantidad || 0);
         const tipo = item.tipo.toLowerCase();
+        const precioMayor = parseFloat(item.precioMayor || 0);
+        const precioDetal = parseFloat(item.precioDetal || 0);
+
+        resumen.totalPrecioMayor += precioMayor;
+        resumen.totalPrecioDetal += precioDetal;
         
         // Totales generales
         resumen.totalProduccionDia += cantidad;
@@ -620,6 +686,26 @@ const HeladoApp = () => {
     calcularResumenProduccion();
   }, [produccionDia, filtros]);
 
+  useEffect(() => {
+    const fetchTasaBCV = async () => {
+      try {
+        // Reemplaza con tu endpoint real
+        const response = await fetch('https://api.bcv.org.ve/api/tasas');
+        const data = await response.json();
+        const tasaUsd = data.usd || 36.5; // Ajusta según la estructura real de la API
+        setVentaData(prev => ({ ...prev, tasaBcv: tasaUsd }));
+      } catch (error) {
+        console.error("Error obteniendo tasa BCV:", error);
+        // Tasa de respaldo
+        setVentaData(prev => ({ ...prev, tasaBcv: 36.5 }));
+      }
+    };
+  
+    fetchTasaBCV();
+    const interval = setInterval(fetchTasaBCV, 3600000); // Actualiza cada hora
+    return () => clearInterval(interval);
+  }, []);
+
   const totalInventario = Object.values(inventario.normal).reduce(
     (total, cantidad) => total + cantidad,
     0
@@ -637,6 +723,8 @@ const HeladoApp = () => {
     const nuevaProduccion = {
       ...formData,
       fecha: new Date().toLocaleDateString(),
+      monedaMayor: formData.monedaMayor || "USD",
+      monedaDetal: formData.monedaDetal || "Bs"
     };
 
     if (editIndex !== null) {
@@ -653,6 +741,8 @@ const HeladoApp = () => {
       tipo: "normal",
       precioMayor: "",
       precioDetal: "",
+      monedaMayor: "USD",
+      monedaDetal: "Bs",
       cantidad: "",
       maquina: "soft",
     });
@@ -674,6 +764,8 @@ const HeladoApp = () => {
     setVentaData({
       tipoVenta: "mayor",
       cantidadVendida: "",
+      precioTotal: "", 
+      precioTotalBs: "",
       precioTotal: "",
       sabores: "",
       tipoHelado: "normal",
@@ -695,6 +787,11 @@ const HeladoApp = () => {
   };
 
   const exportToExcel = () => {
+    const datosConMoneda = produccionDia.map(item => ({
+      ...item,
+      precioMayor: `${item.precioMayor} ${item.monedaMayor}`,
+      precioDetal: `${item.precioDetal} ${item.monedaDetal}`
+    }));
     const ws = XLSX.utils.json_to_sheet(produccionDia);
     const wb = { Sheets: { Producción: ws }, SheetNames: ["Producción"] };
     const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
@@ -719,6 +816,11 @@ const HeladoApp = () => {
       doc.setFontSize(18);
       doc.setTextColor(colorPrincipal);
       doc.text("Reporte de Producción de Helados", pageWidth / 2, 20, { align: 'center' });
+
+        // Nota sobre precios
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text("Nota: Los precios al por mayor se registran en USD y los precios al detal en Bs", 14, 30);
       
       // Fecha del reporte
       doc.setFontSize(10);
@@ -733,6 +835,8 @@ const HeladoApp = () => {
             { content: "Fecha", styles: { fillColor: colorSecundario } },
             { content: "Sabor", styles: { fillColor: colorSecundario } },
             { content: "Tipo", styles: { fillColor: colorSecundario } },
+            { content: "Precio Mayor (USD)", styles: { fillColor: colorSecundario } },
+            { content: "Precio Detal (Bs)", styles: { fillColor: colorSecundario } },
             { content: "Cantidad", styles: { fillColor: colorSecundario } },
             { content: "Máquina", styles: { fillColor: colorSecundario } }
           ]
@@ -741,6 +845,8 @@ const HeladoApp = () => {
           item.fecha,
           item.sabor,
           item.tipo,
+          `${item.precioMayor} ${item.monedaMayor}`,
+          `${item.precioDetal} ${item.monedaDetal}`,
           `${item.cantidad}`,
           item.maquina
         ]),

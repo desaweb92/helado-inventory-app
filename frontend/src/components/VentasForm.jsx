@@ -10,8 +10,8 @@ const VentasForm = ({
 }) => {
   const [saboresDisponibles, setSaboresDisponibles] = useState([]);
   const [saboresSeleccionados, setSaboresSeleccionados] = useState([]);
-  const [tasaBCV, setTasaBCV] = useState({ valor: 0, fecha: '' }); // Estado para tasaBCV
-  const logoOriginalAncho = 800; // Ancho original en píxeles de tu imagen
+  const [tasaBCV, setTasaBCV] = useState({ valor: 0, fecha: '' });
+  const logoOriginalAncho = 800;
   const logoOriginalAlto = 600;
   const logoAncho = 30;
   const logoAlto = (logoAncho * logoOriginalAlto) / logoOriginalAncho;
@@ -21,33 +21,30 @@ const VentasForm = ({
       const response = await fetch('http://localhost:3001/api/tasa');
       if (!response.ok) throw new Error("Error al obtener tasa BCV");
       const data = await response.json();
-      setTasaBCV(data); // Actualiza el estado con la tasa BCV
+      setTasaBCV(data);
     } catch (error) {
       console.error("Error obteniendo tasa BCV:", error);
-      // Mantiene el valor por defecto si hay error
     }
   };
 
   useEffect(() => {
-    fetchTasaBCV(); // Llama a la función para obtener la tasa BCV al montar el componente
+    fetchTasaBCV();
   }, []);
 
-  // Función para generar la factura en PDF
-  const generarFacturaPDF = async (venta) => {  // Cambiado a async
+  const generarFacturaPDF = async (venta) => {
     try {
       const doc = new jsPDF();
-
-    
+  
       // Colores corporativos
       const colorFucsia = "#E91E63";
       const colorVerde = "#4CAF50";
       const colorVerdeOscuro = "#388E3C";
-
-      // Logo (reemplaza con tu imagen base64 o URL)
+  
+      // Logo
       const logoUrl = "https://i.imgur.com/GkhD8en.jpg";
       doc.addImage(logoUrl, "JPEG", 150, 15, logoAncho, logoAlto);
-
-      // Fecha alineada a la izquierda
+  
+      // Fecha
       const fecha = new Date();
       const fechaFormateada = `${fecha.getDate()}/${
         fecha.getMonth() + 1
@@ -55,50 +52,70 @@ const VentasForm = ({
       doc.setFontSize(10);
       doc.setTextColor(100);
       doc.text(`Fecha: ${fechaFormateada}`, 14, 20);
-
-      // Encabezado con colores corporativos
+  
+      // Encabezado
       doc.setFontSize(18);
       doc.setTextColor(colorFucsia);
       doc.text("Helados para todos", 105, 30, { align: "center" });
-
+  
       doc.setFontSize(14);
       doc.setTextColor(colorVerde);
       doc.text("FACTURA", 105, 40, { align: "center" });
-
+  
       // Línea decorativa
       doc.setDrawColor(colorFucsia);
       doc.setLineWidth(0.5);
       doc.line(14, 45, 196, 45);
-
+  
       // Información de la factura
       doc.setFontSize(10);
       doc.setTextColor(100);
       doc.text(`Factura #${Math.floor(Math.random() * 10000)}`, 14, 55);
-
+  
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(
+        `Tipo de Venta: ${venta.tipoVenta === "mayor" ? "Al por mayor (USD)" : "Al detal (Bs)"}`,
+        14,
+        60
+      );
+      doc.text(
+        `Tasa BCV: 1 USD = ${parseFloat(venta.tasaBcv || 0).toFixed(2)} Bs`,
+        14,
+        65
+      );
+  
       // Datos del cliente
       doc.setFontSize(12);
       doc.setTextColor(colorFucsia);
-      doc.text("Datos del Cliente", 14, 65);
-
+      doc.text("Datos del Cliente", 14, 75);
+  
       doc.setFontSize(10);
       doc.setTextColor(60);
-      doc.text("Nombre: Cliente General", 14, 75);
-      doc.text("RIF/CI: ----------", 14, 85);
-      doc.text("Dirección: ----------", 14, 95);
-
+      doc.text("Nombre: Cliente General", 14, 85);
+      doc.text("RIF/CI: ----------", 14, 95);
+      doc.text("Dirección: ----------", 14, 105);
+  
       // Línea decorativa
       doc.setDrawColor(colorVerde);
-      doc.line(14, 100, 196, 100);
-
+      doc.line(14, 115, 196, 115);
+  
       // Detalles de la venta
       doc.setFontSize(12);
       doc.setTextColor(colorFucsia);
-      doc.text("Detalles de la Venta", 14, 110);
-
+      doc.text("Detalles de la Venta", 14, 125);
+  
       // Tabla con estilo verde
       autoTable(doc, {
-        startY: 120,
-        head: [["Producto", "Tipo", "Cantidad", "P. Unitario", "Subtotal"]],
+        startY: 135,
+        head: [[
+          "Producto", 
+          "Tipo", 
+          "Cantidad", 
+          `P. Unitario (${venta.moneda})`, 
+          `Subtotal (${venta.moneda})`,
+          "Subtotal (Bs)"
+        ]],
         body: [
           [
             venta.sabores || "N/A",
@@ -108,8 +125,9 @@ const VentasForm = ({
               ? "Especial"
               : "Super Especial",
             venta.cantidadVendida || 0,
-            `$${(venta.precioTotal / (venta.cantidadVendida || 1)).toFixed(2)}`,
-            `$${(venta.precioTotal || 0).toFixed(2)}`,
+            (parseFloat(venta.precioUnitario) || 0).toFixed(2),
+            (parseFloat(venta.precioTotal) || 0).toFixed(2),
+            (parseFloat(venta.precioTotalBs) || 0).toFixed(2)
           ],
         ],
         theme: "grid",
@@ -128,41 +146,42 @@ const VentasForm = ({
         },
         margin: { left: 14, right: 14 },
       });
-
+  
       // Totales con estilo
       const subtotal = parseFloat(venta.precioTotal) || 0;
-      const iva = subtotal * 0.16;
-      const total = subtotal + iva;
-
+      const subtotalBs = parseFloat(venta.precioTotalBs) || 0;
+  
       doc.setFontSize(10);
       doc.setTextColor(60);
       doc.text("Subtotal:", 150, doc.lastAutoTable.finalY + 15);
-      doc.text(`$${subtotal.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 15, {
+      doc.text(`${venta.moneda} ${subtotal.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 15, {
         align: "right",
       });
-
-      doc.text("IVA (16%):", 150, doc.lastAutoTable.finalY + 25);
-      doc.text(`$${iva.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 25, {
+      doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 20, {
         align: "right",
       });
-
+  
+      // Totales (sin IVA)
       doc.setFontSize(11);
       doc.setTextColor(colorFucsia);
       doc.setFont(undefined, "bold");
-      doc.text("TOTAL:", 150, doc.lastAutoTable.finalY + 35);
-      doc.text(`$${total.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 35, {
+      doc.text("TOTAL:", 150, doc.lastAutoTable.finalY + 30);
+      doc.text(`${venta.moneda} ${subtotal.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 30, {
         align: "right",
       });
-
-      // Tasa BCV (ajustado)
+      doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 35, {
+        align: "right",
+      });
+  
+      // Tasa BCV
       doc.setFontSize(8);
       doc.setTextColor(100);
       doc.text(
-        `Tasa BCV: 1 USD = ${(tasaBCV.valor || 0).toFixed(2)} Bs (${tasaBCV.fecha || 'No disponible'})`,
+        `Tasa BCV: 1 USD = ${(parseFloat(tasaBCV.valor) || 0).toFixed(2)} Bs (${tasaBCV.fecha || 'No disponible'})`,
         14,
         doc.lastAutoTable.finalY + 45
       );
-
+  
       // Método de pago
       doc.setFontSize(10);
       doc.setTextColor(60);
@@ -171,7 +190,7 @@ const VentasForm = ({
         14,
         doc.lastAutoTable.finalY + 50
       );
-
+  
       // Pie de página
       doc.setDrawColor(colorVerde);
       doc.line(
@@ -180,13 +199,13 @@ const VentasForm = ({
         196,
         doc.lastAutoTable.finalY + 60
       );
-
+  
       doc.setFontSize(9);
       doc.setTextColor(colorFucsia);
       doc.text("¡Gracias por su compra!", 105, doc.lastAutoTable.finalY + 70, {
         align: "center",
       });
-
+  
       doc.setFontSize(8);
       doc.setTextColor(100);
       doc.text(
@@ -201,7 +220,7 @@ const VentasForm = ({
         doc.lastAutoTable.finalY + 86,
         { align: "center" }
       );
-
+  
       doc.save(`factura_${new Date().getTime()}.pdf`);
     } catch (error) {
       console.error("Error al generar el PDF:", error);
@@ -210,7 +229,33 @@ const VentasForm = ({
   };
 
   const handleChange = (e) => {
-    setVentaData({ ...ventaData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    setVentaData(prev => {
+      const newData = { ...prev, [name]: value };
+      
+      if (name === 'tipoVenta') {
+        const newSabores = saboresSeleccionados.map(sabor => {
+          const produccion = produccionDia.find(
+            item => item.sabor === sabor.sabor && item.tipo === sabor.tipoHelado
+          );
+          if (produccion) {
+            const precioUnitario = newData.tipoVenta === "mayor" 
+              ? produccion.precioMayor 
+              : produccion.precioDetal;
+            return {
+              ...sabor,
+              precioUnitario,
+              precioTotalSabor: precioUnitario * sabor.cantidad
+            };
+          }
+          return sabor;
+        });
+        setSaboresSeleccionados(newSabores);
+      }
+      
+      return newData;
+    });
   };
 
   const handleSaborChange = (e, index) => {
@@ -244,7 +289,6 @@ const VentasForm = ({
   };
 
   useEffect(() => {
-    // Obtener los sabores disponibles de la producción
     const sabores = [...new Set(produccionDia.map((item) => item.sabor))];
     setSaboresDisponibles(sabores);
   }, [produccionDia]);
@@ -252,89 +296,119 @@ const VentasForm = ({
   useEffect(() => {
     const calcularPrecios = () => {
       let precioTotal = 0;
+      let precioTotalBs = 0;
       let cantidadTotal = 0;
-
+  
       const newSabores = saboresSeleccionados.map((sabor) => {
         const produccion = produccionDia.find(
           (item) => item.sabor === sabor.sabor && item.tipo === sabor.tipoHelado
         );
         if (produccion) {
-          const precio =
-            ventaData.tipoVenta === "mayor"
-              ? produccion.precioMayor
-              : produccion.precioDetal;
-          const precioTotalSabor = precio * sabor.cantidad;
-          precioTotal += precioTotalSabor;
+          const precioUnitario = ventaData.tipoVenta === "mayor"
+            ? parseFloat(produccion.precioMayor)
+            : parseFloat(produccion.precioDetal);
+          
+          const precioTotalSabor = precioUnitario * sabor.cantidad;
+          
+          if (ventaData.tipoVenta === "mayor") {
+            precioTotal += precioTotalSabor;
+            precioTotalBs += precioTotalSabor * parseFloat(tasaBCV.valor);
+          } else {
+            precioTotalBs += precioTotalSabor;
+            precioTotal += precioTotalSabor / parseFloat(tasaBCV.valor);
+          }
+          
           cantidadTotal += sabor.cantidad;
-          return { ...sabor, precioTotalSabor };
+          return { 
+            ...sabor, 
+            precioUnitario,
+            precioTotalSabor,
+            precioTotalSaborBs: ventaData.tipoVenta === "mayor"
+              ? precioTotalSabor * parseFloat(tasaBCV.valor)
+              : precioTotalSabor
+          };
         }
         return sabor;
       });
-
-      // Comparar antes de actualizar
+  
       if (JSON.stringify(newSabores) !== JSON.stringify(saboresSeleccionados)) {
         setSaboresSeleccionados(newSabores);
       }
-
+  
       const newVentaData = {
         ...ventaData,
-        precioTotal: precioTotal.toString(),
+        precioTotal: precioTotal.toFixed(2),
+        precioTotalBs: precioTotalBs.toFixed(2),
         cantidadVendida: cantidadTotal.toString(),
         sabores: newSabores
           .map((sabor) => `${sabor.sabor} (${sabor.tipoHelado})`)
           .join(", "),
+        tasaBcv: parseFloat(tasaBCV.valor)
       };
-
-      // Comparar antes de actualizar
+  
       if (JSON.stringify(newVentaData) !== JSON.stringify(ventaData)) {
         setVentaData(newVentaData);
       }
     };
-
+  
     calcularPrecios();
-  }, [saboresSeleccionados, ventaData.tipoVenta, produccionDia]);
+  }, [saboresSeleccionados, ventaData.tipoVenta, produccionDia, tasaBCV]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
       const nuevasVentas = saboresSeleccionados.map((sabor) => ({
         fecha: new Date().toLocaleDateString("es-ES"),
         tipoVenta: ventaData.tipoVenta,
         cantidadVendida: sabor.cantidad,
-        precioTotal: sabor.precioTotalSabor,
+        precioUnitario: parseFloat(sabor.precioUnitario) || 0,
+        precioTotal: ventaData.tipoVenta === "mayor" 
+          ? parseFloat(sabor.precioTotalSabor) 
+          : parseFloat(sabor.precioTotalSabor) / parseFloat(tasaBCV.valor),
+        precioTotalBs: ventaData.tipoVenta === "mayor"
+          ? parseFloat(sabor.precioTotalSabor) * parseFloat(tasaBCV.valor)
+          : parseFloat(sabor.precioTotalSabor),
         sabores: sabor.sabor,
         tipoHelado: sabor.tipoHelado,
         metodoPago: ventaData.metodoPago,
         observaciones: ventaData.observaciones,
+        tasaBcv: parseFloat(tasaBCV.valor),
+        moneda: ventaData.tipoVenta === "mayor" ? "USD" : "Bs"
       }));
-
-      // Primero procesar la venta
+  
       await handleSubmitVenta(nuevasVentas);
-
-      // Luego generar los PDFs
+      
       nuevasVentas.forEach((venta) => {
         setTimeout(() => generarFacturaPDF(venta), 100);
       });
-
+  
       setSaboresSeleccionados([]);
     } catch (error) {
       console.error("Error al procesar la venta:", error);
-      alert(
-        "Hubo un error al procesar la venta. Por favor intente nuevamente."
-      );
+      alert("Hubo un error al procesar la venta. Por favor intente nuevamente.");
     }
   };
 
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Registro de Ventas</h1>
-        {/* Muestra la tasa actual */}
-        <div className="bg-blue-50 p-3 rounded mb-4">
-        <p className="text-sm">
-          <span className="font-semibold">Tasa BCV actual: </span>
-          1 USD = {tasaBCV.valor.toFixed(2)} Bs (Actualizado: {tasaBCV.fecha})
-        </p>
+      <div className="bg-blue-50 p-3 rounded mb-4">
+        {tasaBCV.valor ? (
+          <p className="text-sm">
+            <span className="font-semibold">Tasa BCV actual: </span>
+            1 USD = {parseFloat(tasaBCV.valor).toFixed(2)} Bs (Actualizado: {tasaBCV.fecha})
+          </p>
+        ) : (
+          <p className="text-sm">Cargando tasa BCV...</p>
+        )}
+        <button
+          type="button"
+          onClick={fetchTasaBCV}
+          className="text-xs text-blue-600 hover:underline mt-1"
+        >
+          Actualizar tasa
+        </button>
       </div>
       <form
         onSubmit={handleSubmit}
@@ -353,16 +427,35 @@ const VentasForm = ({
             <option value="detal">Al detal</option>
           </select>
         </div>
-        <div>
-          <label className="block text-gray-700">Precio Total:</label>
-          <input
-            type="number"
-            name="precioTotal"
-            value={ventaData.precioTotal}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-lg"
-            readOnly
-          />
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-gray-700">Precio Total ({ventaData.tipoVenta === "mayor" ? "USD" : "Bs"}):</label>
+            <input
+              type="text"
+              value={ventaData.precioTotal}
+              className="w-full px-3 py-2 border rounded-lg"
+              readOnly
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700">Precio Total (Bs):</label>
+            <input
+              type="text"
+              value={ventaData.precioTotalBs || "0.00"}
+              className="w-full px-3 py-2 border rounded-lg"
+              readOnly
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700">Tasa BCV:</label>
+            <input
+              type="text"
+              value={tasaBCV.valor ? `1 USD = ${parseFloat(tasaBCV.valor).toFixed(2)} Bs` : "Cargando..."}
+              className="w-full px-3 py-2 border rounded-lg"
+              readOnly
+            />
+          </div>
         </div>
         <div>
           <label className="block text-gray-700">Cantidad Total:</label>
@@ -448,12 +541,23 @@ const VentasForm = ({
             </div>
             <div className="col-span-1">
               <label className="block text-gray-700 text-sm">Subtotal</label>
-              <input
-                type="number"
-                value={sabor.precioTotalSabor}
-                className="w-full px-3 py-2 border rounded-lg"
-                readOnly
-              />
+              <div className="space-y-1">
+                <input
+                  type="text"
+                  value={`${ventaData.tipoVenta === "mayor" ? "USD" : "Bs"} ${(parseFloat(sabor.precioTotalSabor) || 0).toFixed(2)}`}
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                  readOnly
+                />
+                <input
+                  type="text"
+                  value={`Bs ${(ventaData.tipoVenta === "mayor" 
+                    ? (parseFloat(sabor.precioTotalSabor) || 0) * parseFloat(tasaBCV.valor)
+                    : (parseFloat(sabor.precioTotalSabor) || 0)
+                  ).toFixed(2)}`}
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                  readOnly
+                />
+              </div>
             </div>
             <div className="col-span-1 flex items-end">
               <button

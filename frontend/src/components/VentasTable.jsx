@@ -1,10 +1,27 @@
 import React from "react";
 
 const VentasTable = ({ ventasDia }) => {
+  // Función para calcular el valor total en USD
   const calcularValorTotalVenta = () => {
-    return ventasDia.reduce((total, venta) => total + parseFloat(venta.precioTotal || 0), 0);
+    return ventasDia.reduce((total, venta) => {
+      const precio = venta.tipoVenta === 'mayor' 
+        ? parseFloat(venta.precioTotal || 0)
+        : parseFloat(venta.precioTotal || 0) / parseFloat(venta.tasaBcv || 36.5);
+      return total + precio;
+    }, 0);
   };
 
+  // Función para calcular el valor total en Bs
+  const calcularValorTotalVentaBs = () => {
+    return ventasDia.reduce((total, venta) => {
+      const precio = venta.tipoVenta === 'mayor'
+        ? parseFloat(venta.precioTotal || 0) * parseFloat(venta.tasaBcv || 36.5)
+        : parseFloat(venta.precioTotalBs || 0);
+      return total + precio;
+    }, 0);
+  };
+
+  // Función para calcular la cantidad total (solo declarada una vez)
   const calcularCantidadTotal = () => {
     return ventasDia.reduce((total, venta) => total + parseInt(venta.cantidadVendida || 0, 10), 0);
   };
@@ -19,7 +36,7 @@ const VentasTable = ({ ventasDia }) => {
   };
 
   const formatearTipoVenta = (tipo) => {
-    return tipo === 'mayor' ? 'Por mayor' : 'Al detal';
+    return tipo === 'mayor' ? 'Por mayor (USD)' : 'Al detal (Bs)';
   };
 
   const formatearMetodoPago = (metodo) => {
@@ -53,7 +70,9 @@ const VentasTable = ({ ventasDia }) => {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Fecha</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Tipo Venta</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Cantidad</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Precio Unitario</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Precio Total</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Tasa BCV</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Sabores</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Tipo Helado</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Método Pago</th>
@@ -72,7 +91,28 @@ const VentasTable = ({ ventasDia }) => {
                       </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{item.cantidadVendida}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-green-600 font-medium">${parseFloat(item.precioTotal || 0).toFixed(2)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                      {item.tipoVenta === 'mayor' 
+                        ? `$${parseFloat(item.precioUnitario || 0).toFixed(2)} USD`
+                        : `Bs ${parseFloat(item.precioUnitario || 0).toFixed(2)}`}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm">
+                      <div className="flex flex-col">
+                        <span className="text-green-600 font-medium">
+                          {item.tipoVenta === 'mayor'
+                            ? `$${parseFloat(item.precioTotal || 0).toFixed(2)} USD`
+                            : `Bs ${parseFloat(item.precioTotalBs || 0).toFixed(2)}`}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {item.tipoVenta === 'mayor'
+                            ? `Bs ${(parseFloat(item.precioTotal || 0) * parseFloat(item.tasaBcv || 36.5)).toFixed(2)}`
+                            : `$${(parseFloat(item.precioTotalBs || 0) / parseFloat(item.tasaBcv || 36.5)).toFixed(2)} USD`}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                      {parseFloat(item.tasaBcv || 0).toFixed(2)}
+                    </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{item.sabores}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                       <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -93,8 +133,8 @@ const VentasTable = ({ ventasDia }) => {
                       </span>
                     </td>
                     <td className="px-4 py-3 whitespace-normal text-sm text-gray-700 max-w-xs truncate" title={item.observaciones}>
-  {item.observaciones || '-'}
-</td>
+                      {item.observaciones || '-'}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -102,8 +142,13 @@ const VentasTable = ({ ventasDia }) => {
                 <tr>
                   <td className="px-4 py-3 text-sm font-medium text-gray-700" colSpan="2">Total General</td>
                   <td className="px-4 py-3 text-sm font-medium text-gray-700">{calcularCantidadTotal()}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-green-600">${calcularValorTotalVenta().toFixed(2)}</td>
-                  <td className="px-4 py-3" colSpan="3"></td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-700" colSpan="2">
+                    <div className="flex flex-col">
+                      <span className="text-green-600">${calcularValorTotalVenta().toFixed(2)} USD</span>
+                      <span className="text-sm text-gray-700">Bs {calcularValorTotalVentaBs().toFixed(2)}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3" colSpan="5"></td>
                 </tr>
               </tfoot>
             </table>
@@ -133,8 +178,31 @@ const VentasTable = ({ ventasDia }) => {
                     <p className="text-sm text-gray-900">{item.cantidadVendida}</p>
                   </div>
                   <div>
+                    <p className="text-xs font-medium text-gray-500">Precio Unitario</p>
+                    <p className="text-sm text-gray-700">
+                      {item.tipoVenta === 'mayor'
+                        ? `$${parseFloat(item.precioUnitario || 0).toFixed(2)} USD`
+                        : `Bs ${parseFloat(item.precioUnitario || 0).toFixed(2)}`}
+                    </p>
+                  </div>
+                  <div className="col-span-2">
                     <p className="text-xs font-medium text-gray-500">Precio Total</p>
-                    <p className="text-sm text-green-600 font-medium">${parseFloat(item.precioTotal || 0).toFixed(2)}</p>
+                    <div className="flex flex-col">
+                      <p className="text-sm text-green-600 font-medium">
+                        {item.tipoVenta === 'mayor'
+                          ? `$${parseFloat(item.precioTotal || 0).toFixed(2)} USD`
+                          : `Bs ${parseFloat(item.precioTotalBs || 0).toFixed(2)}`}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {item.tipoVenta === 'mayor'
+                          ? `Bs ${(parseFloat(item.precioTotal || 0) * parseFloat(item.tasaBcv || 36.5)).toFixed(2)}`
+                          : `$${(parseFloat(item.precioTotalBs || 0) / parseFloat(item.tasaBcv || 36.5)).toFixed(2)} USD`}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-gray-500">Tasa BCV</p>
+                    <p className="text-sm text-gray-700">{parseFloat(item.tasaBcv || 0).toFixed(2)}</p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-xs font-medium text-gray-500">Sabores</p>
@@ -165,9 +233,9 @@ const VentasTable = ({ ventasDia }) => {
                     </p>
                   </div>
                   <div className="col-span-2">
-  <p className="text-xs font-medium text-gray-500">Observaciones</p>
-  <p className="text-sm text-gray-900">{item.observaciones || '-'}</p>
-</div>
+                    <p className="text-xs font-medium text-gray-500">Observaciones</p>
+                    <p className="text-sm text-gray-900">{item.observaciones || '-'}</p>
+                  </div>
                 </div>
               </div>
             ))}
@@ -180,8 +248,10 @@ const VentasTable = ({ ventasDia }) => {
                   <p className="text-lg font-semibold text-gray-900">{calcularCantidadTotal()}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Total Ventas:</p>
+                  <p className="text-sm font-medium text-gray-700">Total Ventas (USD):</p>
                   <p className="text-lg font-semibold text-green-600">${calcularValorTotalVenta().toFixed(2)}</p>
+                  <p className="text-sm font-medium text-gray-700">Total Ventas (Bs):</p>
+                  <p className="text-lg font-semibold text-blue-600">Bs {calcularValorTotalVentaBs().toFixed(2)}</p>
                 </div>
               </div>
             </div>

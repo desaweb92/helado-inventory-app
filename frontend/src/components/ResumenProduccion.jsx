@@ -13,6 +13,8 @@ const ResumenProduccion = ({ resumen }) => {
               <th className="py-2 px-4 border">Producción Semana</th>
               <th className="py-2 px-4 border">Producción Mes</th>
               <th className="py-2 px-4 border">Producción Año</th>
+              <th className="py-2 px-4 border">Precio Mayor (USD)</th>
+              <th className="py-2 px-4 border">Precio Detal (Bs)</th>
               <th className="py-2 px-4 border">Soft Día</th>
               <th className="py-2 px-4 border">Soft Semana</th>
               <th className="py-2 px-4 border">Soft Mes</th>
@@ -31,6 +33,8 @@ const ResumenProduccion = ({ resumen }) => {
               <td className="py-2 px-4 border text-center">{resumen.totalProduccionSemana}</td>
               <td className="py-2 px-4 border text-center">{resumen.totalProduccionMes}</td>
               <td className="py-2 px-4 border text-center">{resumen.totalProduccionAnio}</td>
+              <td className="py-2 px-4 border text-center">{resumen.totalPrecioMayor}</td>
+              <td className="py-2 px-4 border text-center">{resumen.totalPrecioDetal}</td>
               <td className="py-2 px-4 border text-center">{resumen.totalMaquinaSoftDia}</td>
               <td className="py-2 px-4 border text-center">{resumen.totalMaquinaSoftSemana}</td>
               <td className="py-2 px-4 border text-center">{resumen.totalMaquinaSoftMes}</td>
@@ -48,6 +52,8 @@ const ResumenProduccion = ({ resumen }) => {
               <td className="py-2 px-4 border text-center">{resumen.normal?.totalProduccionSemana || 0}</td>
               <td className="py-2 px-4 border text-center">{resumen.normal?.totalProduccionMes || 0}</td>
               <td className="py-2 px-4 border text-center">{resumen.normal?.totalProduccionAnio || 0}</td>
+              <td className="py-2 px-4 border text-center">{resumen.normal?.totalPrecioMayor || 0}</td>
+              <td className="py-2 px-4 border text-center">{resumen.normal?.totalPrecioDetal || 0}</td>
               <td className="py-2 px-4 border text-center">{resumen.normal?.totalMaquinaSoftDia || 0}</td>
               <td className="py-2 px-4 border text-center">{resumen.normal?.totalMaquinaSoftSemana || 0}</td>
               <td className="py-2 px-4 border text-center">{resumen.normal?.totalMaquinaSoftMes || 0}</td>
@@ -65,6 +71,8 @@ const ResumenProduccion = ({ resumen }) => {
               <td className="py-2 px-4 border text-center">{resumen.especial?.totalProduccionSemana || 0}</td>
               <td className="py-2 px-4 border text-center">{resumen.especial?.totalProduccionMes || 0}</td>
               <td className="py-2 px-4 border text-center">{resumen.especial?.totalProduccionAnio || 0}</td>
+              <td className="py-2 px-4 border text-center">{resumen.especial?.totalPrecioMayor || 0}</td>
+              <td className="py-2 px-4 border text-center">{resumen.especial?.totalPrecioDetal || 0}</td>
               <td className="py-2 px-4 border text-center">{resumen.especial?.totalMaquinaSoftDia || 0}</td>
               <td className="py-2 px-4 border text-center">{resumen.especial?.totalMaquinaSoftSemana || 0}</td>
               <td className="py-2 px-4 border text-center">{resumen.especial?.totalMaquinaSoftMes || 0}</td>
@@ -82,6 +90,8 @@ const ResumenProduccion = ({ resumen }) => {
               <td className="py-2 px-4 border text-center">{resumen.superEspecial?.totalProduccionSemana || 0}</td>
               <td className="py-2 px-4 border text-center">{resumen.superEspecial?.totalProduccionMes || 0}</td>
               <td className="py-2 px-4 border text-center">{resumen.superEspecial?.totalProduccionAnio || 0}</td>
+              <td className="py-2 px-4 border text-center">{resumen.superEspecial?.totalPrecioMayor || 0}</td>
+              <td className="py-2 px-4 border text-center">{resumen.superEspecial?.totalPrecioDetal || 0}</td>
               <td className="py-2 px-4 border text-center">{resumen.superEspecial?.totalMaquinaSoftDia || 0}</td>
               <td className="py-2 px-4 border text-center">{resumen.superEspecial?.totalMaquinaSoftSemana || 0}</td>
               <td className="py-2 px-4 border text-center">{resumen.superEspecial?.totalMaquinaSoftMes || 0}</td>
