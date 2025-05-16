@@ -125,9 +125,17 @@ const VentasForm = ({
               : venta.tipoHelado === "especial"
               ? "Especial"
               : venta.tipoHelado === "barquilla_bolitas"
-              ? "Barquilla Bolitas"
+              ? `Barquilla Bolitas (${venta.bolitas === "doble" ? "Doble" : "Simple"})`
               : venta.tipoHelado === "barquilla_soft"
               ? "Barquilla Soft"
+              : venta.tipoHelado === "barquilla_yogurt"
+              ? "Barquilla Yogurt"
+              : venta.tipoHelado === "1lt"
+              ? "Tarro 1lt"
+              : venta.tipoHelado === "2lt"
+              ? "Tarro 2lt"
+              : venta.tipoHelado === "4lt"
+              ? "Tarro 4lt"
               : "Sundae",
             venta.cantidadVendida || 0,
             (parseFloat(venta.precioUnitario) || 0).toFixed(2),
@@ -296,6 +304,7 @@ const VentasForm = ({
     newProductos[index].precioDetal = "";
     newProductos[index].precioUnitario = "";
     newProductos[index].precioTotalSabor = 0;
+    newProductos[index].bolitas = "simple"; // Valor por defecto
     setProductosEspeciales(newProductos);
   };
 
@@ -336,6 +345,12 @@ const VentasForm = ({
     setProductosEspeciales(newProductos);
   };
 
+  const handleBolitaChange = (e, index) => {
+    const newProductos = [...productosEspeciales];
+    newProductos[index].bolitas = e.target.value;
+    setProductosEspeciales(newProductos);
+  };
+
   const addSabor = () => {
     setSaboresSeleccionados([
       ...saboresSeleccionados,
@@ -360,7 +375,8 @@ const VentasForm = ({
         precioDetal: "",
         precioUnitario: "",
         precioTotalSabor: 0,
-        tipoHelado: "especial"
+        tipoHelado: "especial",
+        bolitas: "simple" // Valor por defecto
       },
     ]);
   };
@@ -458,8 +474,12 @@ const VentasForm = ({
           ...newSabores.map((sabor) => `${sabor.sabor} (${sabor.tipoHelado})`),
           ...newProductos.map(producto => {
             let tipo = "";
-            if (producto.tipoProducto === "barquilla_bolitas") tipo = "Barquilla Bolitas";
-            else if (producto.tipoProducto === "barquilla_soft") tipo = "Barquilla Soft";
+            if (producto.tipoProducto === "barquilla_bolitas") tipo = `Barquilla bolita (${producto.bolitas === "doble" ? "Doble" : "Simple"})`;
+            else if (producto.tipoProducto === "barquilla_soft") tipo = "Barquilla soft";
+            else if (producto.tipoProducto === "barquilla_yogurt") tipo = "Barquilla yogurt";
+            else if (producto.tipoProducto === "1lt") tipo = "Tarro 1lt";
+            else if (producto.tipoProducto === "2lt") tipo = "Tarro 2lt";
+            else if (producto.tipoProducto === "4lt") tipo = "Tarro 4lt";
             else if (producto.tipoProducto === "sundae") tipo = "Sundae";
             return `${producto.sabor} (${tipo})`;
           })
@@ -518,7 +538,8 @@ const VentasForm = ({
         observaciones: ventaData.observaciones,
         tasaBcv: parseFloat(tasaBCV.valor),
         moneda: ventaData.tipoVenta === "mayor" ? "USD" : "Bs",
-        productoEspecial: producto.tipoProducto
+        productoEspecial: producto.tipoProducto,
+        bolitas: producto.tipoProducto === "barquilla_bolitas" ? producto.bolitas : undefined
       }));
   
       const todasLasVentas = [...ventasNormales, ...ventasEspeciales];
@@ -741,8 +762,12 @@ const VentasForm = ({
                     className="w-full px-3 py-2 border rounded-lg"
                     required
                   >
-                    <option value="barquilla_bolitas">Barquilla Bolitas</option>
-                    <option value="barquilla_soft">Barquilla Soft</option>
+                    <option value="barquilla_bolitas">Barquilla bolita</option>
+                    <option value="barquilla_soft">Barquilla soft</option>
+                    <option value="barquilla_yogurt">Barquilla yogurt</option>
+                    <option value="1lt">Tarro 1lt</option>
+                    <option value="2lt">Tarro 2lt</option>
+                    <option value="4lt">Tarro 4lt</option>
                     <option value="sundae">Sundae</option>
                   </select>
                 </div>
@@ -762,6 +787,20 @@ const VentasForm = ({
                     ))}
                   </select>
                 </div>
+                {producto.tipoProducto === "barquilla_bolitas" && (
+                  <div className="col-span-1">
+                    <label className="block text-gray-700 text-sm">Bolitas</label>
+                    <select
+                      value={producto.bolitas}
+                      onChange={(e) => handleBolitaChange(e, index)}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      required
+                    >
+                      <option value="simple">1 bolita</option>
+                      <option value="doble">2 bolitas</option>
+                    </select>
+                  </div>
+                )}
                 <div className="col-span-1">
                   <label className="block text-gray-700 text-sm">Cantidad</label>
                   <input
@@ -830,14 +869,14 @@ const VentasForm = ({
               onClick={addSabor}
               className="md:w-[200px] w-full bg-[#4CAF50] text-white px-4 py-2 rounded-lg"
             >
-              Agregar Sabor
+              Agregar sabor
             </button>
             <button
               type="button"
               onClick={addProducto}
-              className="md:w-[200px] w-full bg-[#4CAF50] text-white px-4 py-2 rounded-lg"
+              className="md:w-[200px] w-full bg-[#308b15] text-white px-4 py-2 rounded-lg"
             >
-              Agregar Producto
+              Agregar producto especial
             </button>
           </div>
           <button
@@ -845,7 +884,7 @@ const VentasForm = ({
             className="md:w-[200px] w-full bg-[#E91E63] text-white px-4 py-2 rounded-lg hover:bg-green-700"
             disabled={saboresSeleccionados.length === 0 && productosEspeciales.length === 0}
           >
-            Registrar Venta y descargar factura
+            Registrar venta y descargar factura
           </button>
         </div>
       </form>

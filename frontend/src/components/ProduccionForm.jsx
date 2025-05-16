@@ -32,9 +32,9 @@ const ProduccionForm = ({ formData, setFormData, handleSubmitProduccion, editInd
             <option value="normal">Normal</option>
             <option value="especial">Especial</option>
             <option value="superEspecial">Super Especial</option>
-            <option value="1lt">Helado de Tarro 1lt</option>
-            <option value="2lt">Helado de Tarro 2lt</option>
-            <option value="4lt">Helado de Tarro 4lt</option>
+            <option value="1lt">Helado en envase 1lt</option>
+            <option value="2lt">Helado en envase 2lt</option>
+            <option value="4lt">Helado en envase 4lt</option>
           </select>
         </div>
         <div>
