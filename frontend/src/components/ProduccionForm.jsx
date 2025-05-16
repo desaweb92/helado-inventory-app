@@ -32,10 +32,13 @@ const ProduccionForm = ({ formData, setFormData, handleSubmitProduccion, editInd
             <option value="normal">Normal</option>
             <option value="especial">Especial</option>
             <option value="superEspecial">Super Especial</option>
+            <option value="1lt">Helado de Tarro 1lt</option>
+            <option value="2lt">Helado de Tarro 2lt</option>
+            <option value="4lt">Helado de Tarro 4lt</option>
           </select>
         </div>
         <div>
-          <label className="block mb-1">Precio al por mayor (USD):</label>
+          <label className="block mb-1">Precio al por mayor:</label>
           <div className="flex">
             <input
               type="number"
@@ -45,12 +48,21 @@ const ProduccionForm = ({ formData, setFormData, handleSubmitProduccion, editInd
               className="w-full p-2 border rounded"
               step="0.01"
               min="0"
+              required
             />
-            <span className="ml-2 p-2 bg-gray-200 rounded">USD</span>
+            <select
+              name="monedaMayor"
+              value={formData.monedaMayor}
+              onChange={handleChange}
+              className="ml-2 p-2 border rounded"
+            >
+              <option value="USD">USD</option>
+              <option value="Bs">Bs</option>
+            </select>
           </div>
         </div>
         <div>
-          <label className="block mb-1">Precio al detal (Bs):</label>
+          <label className="block mb-1">Precio al detal:</label>
           <div className="flex">
             <input
               type="number"
@@ -60,8 +72,17 @@ const ProduccionForm = ({ formData, setFormData, handleSubmitProduccion, editInd
               className="w-full p-2 border rounded"
               step="0.01"
               min="0"
+              required
             />
-            <span className="ml-2 p-2 bg-gray-200 rounded">Bs</span>
+            <select
+              name="monedaDetal"
+              value={formData.monedaDetal}
+              onChange={handleChange}
+              className="ml-2 p-2 border rounded"
+            >
+              <option value="Bs">Bs</option>
+              <option value="USD">USD</option>
+            </select>
           </div>
         </div>
         <div>

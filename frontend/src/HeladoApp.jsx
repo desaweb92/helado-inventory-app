@@ -13,9 +13,10 @@ import ResumenVentas from "./components/ResumenVentas";
 import ResumenProduccion from "./components/ResumenProduccion";
 
 const HeladoApp = () => {
+  // Estado para datos de producción
   const [formData, setFormData] = useState({
     sabor: "",
-    tipo: "normal",
+    tipo: "normal", // Ahora incluye "1lt", "2lt", "4lt"
     precioMayor: "",
     precioDetal: "",
     monedaMayor: "USD",
@@ -24,22 +25,32 @@ const HeladoApp = () => {
     maquina: "soft",
   });
 
+  // Estado para datos de ventas
   const [ventaData, setVentaData] = useState({
     tipoVenta: "mayor",
     cantidadVendida: "",
     precioTotal: "",
     sabores: "",
-    tipoHelado: "normal",
+    tipoHelado: "normal", // Ahora incluye "1lt", "2lt", "4lt"
     metodoPago: "Punto",
+    productoEspecial: "", // Nuevo campo para barquillas/sundae
   });
 
+  // Estados para los registros
   const [produccionDia, setProduccionDia] = useState([]);
   const [ventasDia, setVentasDia] = useState([]);
+  
+  // Inventario actualizado con helados de tarro
   const [inventario, setInventario] = useState({
     normal: {},
     especial: {},
     superEspecial: {},
+    "1lt": {},
+    "2lt": {},
+    "4lt": {},
   });
+
+  // Filtros
   const [filtros, setFiltros] = useState({
     sabor: "",
     medioPago: "",
@@ -50,9 +61,11 @@ const HeladoApp = () => {
     anio: "",
     temporada: "",
   });
+
   const [editIndex, setEditIndex] = useState(null);
   const [activeSection, setActiveSection] = useState("produccion");
 
+  // Resumen de ventas actualizado
   const [resumenVentas, setResumenVentas] = useState({
     totalVentasDia: 0,
     totalVentasMes: 0,
@@ -70,15 +83,19 @@ const HeladoApp = () => {
     totalPagoMovilMes: 0,
     totalPagoMovilAnio: 0,
     totalPagoMovilSemana: 0,
+    totalBarquillaBolitas: 0,
+    totalBarquillaSoft: 0,
+    totalSundae: 0,
   });
 
+  // Resumen de producción actualizado
   const [resumenProduccion, setResumenProduccion] = useState({
     totalProduccionDia: 0,
     totalProduccionMes: 0,
     totalProduccionAnio: 0,
     totalProduccionSemana: 0,
-    totalPrecioMayor: 0, // Nuevo campo
-    totalPrecioDetal: 0, // Nuevo campo
+    totalPrecioMayor: 0,
+    totalPrecioDetal: 0,
     totalMaquinaSoftDia: 0,
     totalMaquinaSoftMes: 0,
     totalMaquinaSoftAnio: 0,
@@ -92,8 +109,8 @@ const HeladoApp = () => {
       totalProduccionMes: 0,
       totalProduccionAnio: 0,
       totalProduccionSemana: 0,
-      totalPrecioMayor: 0, // Nuevo campo
-      totalPrecioDetal: 0, // Nuevo campo
+      totalPrecioMayor: 0,
+      totalPrecioDetal: 0,
       totalMaquinaSoftDia: 0,
       totalMaquinaSoftMes: 0,
       totalMaquinaSoftAnio: 0,
@@ -104,12 +121,12 @@ const HeladoApp = () => {
       totalMaquinaMantecadoraSemana: 0
     },
     especial: {
-         totalProduccionDia: 0,
+      totalProduccionDia: 0,
       totalProduccionMes: 0,
       totalProduccionAnio: 0,
       totalProduccionSemana: 0,
-      totalPrecioMayor: 0, // Nuevo campo
-      totalPrecioDetal: 0, // Nuevo campo
+      totalPrecioMayor: 0,
+      totalPrecioDetal: 0,
       totalMaquinaSoftDia: 0,
       totalMaquinaSoftMes: 0,
       totalMaquinaSoftAnio: 0,
@@ -120,12 +137,60 @@ const HeladoApp = () => {
       totalMaquinaMantecadoraSemana: 0
     },
     superEspecial: {
-         totalProduccionDia: 0,
+      totalProduccionDia: 0,
       totalProduccionMes: 0,
       totalProduccionAnio: 0,
       totalProduccionSemana: 0,
-      totalPrecioMayor: 0, // Nuevo campo
-      totalPrecioDetal: 0, // Nuevo campo
+      totalPrecioMayor: 0,
+      totalPrecioDetal: 0,
+      totalMaquinaSoftDia: 0,
+      totalMaquinaSoftMes: 0,
+      totalMaquinaSoftAnio: 0,
+      totalMaquinaSoftSemana: 0,
+      totalMaquinaMantecadoraDia: 0,
+      totalMaquinaMantecadoraMes: 0,
+      totalMaquinaMantecadoraAnio: 0,
+      totalMaquinaMantecadoraSemana: 0
+    },
+    "1lt": {
+      totalProduccionDia: 0,
+      totalProduccionMes: 0,
+      totalProduccionAnio: 0,
+      totalProduccionSemana: 0,
+      totalPrecioMayor: 0,
+      totalPrecioDetal: 0,
+      totalMaquinaSoftDia: 0,
+      totalMaquinaSoftMes: 0,
+      totalMaquinaSoftAnio: 0,
+      totalMaquinaSoftSemana: 0,
+      totalMaquinaMantecadoraDia: 0,
+      totalMaquinaMantecadoraMes: 0,
+      totalMaquinaMantecadoraAnio: 0,
+      totalMaquinaMantecadoraSemana: 0
+    },
+    "2lt": {
+      totalProduccionDia: 0,
+      totalProduccionMes: 0,
+      totalProduccionAnio: 0,
+      totalProduccionSemana: 0,
+      totalPrecioMayor: 0,
+      totalPrecioDetal: 0,
+      totalMaquinaSoftDia: 0,
+      totalMaquinaSoftMes: 0,
+      totalMaquinaSoftAnio: 0,
+      totalMaquinaSoftSemana: 0,
+      totalMaquinaMantecadoraDia: 0,
+      totalMaquinaMantecadoraMes: 0,
+      totalMaquinaMantecadoraAnio: 0,
+      totalMaquinaMantecadoraSemana: 0
+    },
+    "4lt": {
+      totalProduccionDia: 0,
+      totalProduccionMes: 0,
+      totalProduccionAnio: 0,
+      totalProduccionSemana: 0,
+      totalPrecioMayor: 0,
+      totalPrecioDetal: 0,
       totalMaquinaSoftDia: 0,
       totalMaquinaSoftMes: 0,
       totalMaquinaSoftAnio: 0,
@@ -136,10 +201,9 @@ const HeladoApp = () => {
       totalMaquinaMantecadoraSemana: 0
     }
   });
-  
 
+  // Efecto para actualizar inventario
   useEffect(() => {
-    // Actualizar el inventario cuando cambie la producción del día
     const nuevoInventario = produccionDia.reduce((acc, item) => {
       const clave = `${item.sabor} - ${item.tipo}`;
       const producida = parseInt(item.cantidad || 0, 10);
@@ -154,17 +218,16 @@ const HeladoApp = () => {
         acc[item.tipo][clave] = producida;
       }
       return acc;
-    }, { normal: {}, especial: {}, superEspecial: {} });
+    }, { normal: {}, especial: {}, superEspecial: {}, "1lt": {}, "2lt": {}, "4lt": {} });
 
     setInventario(nuevoInventario);
   }, [produccionDia]);
 
+  // Efecto para resumen de ventas
   useEffect(() => {
-    // Calcular resumen de ventas
     const calcularResumenVentas = () => {
       const filtradas = aplicarFiltrosVentas();
       
-      // Inicializar el objeto de resumen
       const resumen = {
         totalVentasDia: 0,
         totalVentasSemana: 0,
@@ -182,66 +245,26 @@ const HeladoApp = () => {
         totalPagoMovilSemana: 0,
         totalPagoMovilMes: 0,
         totalPagoMovilAnio: 0,
-        normal: {
-          totalVentasDia: 0,
-          totalVentasSemana: 0,
-          totalVentasMes: 0,
-          totalVentasAnio: 0,
-          totalEfectivoDia: 0,
-          totalEfectivoSemana: 0,
-          totalEfectivoMes: 0,
-          totalEfectivoAnio: 0,
-          totalPuntoDia: 0,
-          totalPuntoSemana: 0,
-          totalPuntoMes: 0,
-          totalPuntoAnio: 0,
-          totalPagoMovilDia: 0,
-          totalPagoMovilSemana: 0,
-          totalPagoMovilMes: 0,
-          totalPagoMovilAnio: 0
-        },
-        especial: {
-          totalVentasDia: 0,
-          totalVentasSemana: 0,
-          totalVentasMes: 0,
-          totalVentasAnio: 0,
-          totalEfectivoDia: 0,
-          totalEfectivoSemana: 0,
-          totalEfectivoMes: 0,
-          totalEfectivoAnio: 0,
-          totalPuntoDia: 0,
-          totalPuntoSemana: 0,
-          totalPuntoMes: 0,
-          totalPuntoAnio: 0,
-          totalPagoMovilDia: 0,
-          totalPagoMovilSemana: 0,
-          totalPagoMovilMes: 0,
-          totalPagoMovilAnio: 0
-        },
-        superEspecial: {
-          totalVentasDia: 0,
-          totalVentasSemana: 0,
-          totalVentasMes: 0,
-          totalVentasAnio: 0,
-          totalEfectivoDia: 0,
-          totalEfectivoSemana: 0,
-          totalEfectivoMes: 0,
-          totalEfectivoAnio: 0,
-          totalPuntoDia: 0,
-          totalPuntoSemana: 0,
-          totalPuntoMes: 0,
-          totalPuntoAnio: 0,
-          totalPagoMovilDia: 0,
-          totalPagoMovilSemana: 0,
-          totalPagoMovilMes: 0,
-          totalPagoMovilAnio: 0
-        }
+        totalBarquillaBolitas: 0,
+        totalBarquillaSoft: 0,
+        totalSundae: 0,
       };
     
       // Procesar ventas del día (filtradas)
       filtradas.forEach(venta => {
         const precioTotal = parseFloat(venta.precioTotal || 0);
         const tipo = venta.tipoHelado.toLowerCase();
+        
+        // Productos especiales
+        if (venta.productoEspecial) {
+          if (venta.productoEspecial === 'barquilla_bolitas') {
+            resumen.totalBarquillaBolitas += precioTotal;
+          } else if (venta.productoEspecial === 'barquilla_soft') {
+            resumen.totalBarquillaSoft += precioTotal;
+          } else if (venta.productoEspecial === 'sundae') {
+            resumen.totalSundae += precioTotal;
+          }
+        }
         
         // Totales generales
         resumen.totalVentasDia += precioTotal;
@@ -251,36 +274,6 @@ const HeladoApp = () => {
           resumen.totalPuntoDia += precioTotal;
         } else if (venta.metodoPago === 'PagoMovil') {
           resumen.totalPagoMovilDia += precioTotal;
-        }
-        
-        // Por tipo
-        if (tipo === 'normal') {
-          resumen.normal.totalVentasDia += precioTotal;
-          if (venta.metodoPago === 'Efectivo') {
-            resumen.normal.totalEfectivoDia += precioTotal;
-          } else if (venta.metodoPago === 'Punto') {
-            resumen.normal.totalPuntoDia += precioTotal;
-          } else if (venta.metodoPago === 'PagoMovil') {
-            resumen.normal.totalPagoMovilDia += precioTotal;
-          }
-        } else if (tipo === 'especial') {
-          resumen.especial.totalVentasDia += precioTotal;
-          if (venta.metodoPago === 'Efectivo') {
-            resumen.especial.totalEfectivoDia += precioTotal;
-          } else if (venta.metodoPago === 'Punto') {
-            resumen.especial.totalPuntoDia += precioTotal;
-          } else if (venta.metodoPago === 'PagoMovil') {
-            resumen.especial.totalPagoMovilDia += precioTotal;
-          }
-        } else if (tipo === 'superespecial') {
-          resumen.superEspecial.totalVentasDia += precioTotal;
-          if (venta.metodoPago === 'Efectivo') {
-            resumen.superEspecial.totalEfectivoDia += precioTotal;
-          } else if (venta.metodoPago === 'Punto') {
-            resumen.superEspecial.totalPuntoDia += precioTotal;
-          } else if (venta.metodoPago === 'PagoMovil') {
-            resumen.superEspecial.totalPagoMovilDia += precioTotal;
-          }
         }
       });
     
@@ -330,108 +323,6 @@ const HeladoApp = () => {
             resumen.totalPagoMovilSemana += precioTotal;
           }
         }
-    
-        // Por tipo
-        if (tipo === 'normal') {
-          if (mes === filtros.mes) {
-            resumen.normal.totalVentasMes += precioTotal;
-            if (venta.metodoPago === 'Efectivo') {
-              resumen.normal.totalEfectivoMes += precioTotal;
-            } else if (venta.metodoPago === 'Punto') {
-              resumen.normal.totalPuntoMes += precioTotal;
-            } else if (venta.metodoPago === 'PagoMovil') {
-              resumen.normal.totalPagoMovilMes += precioTotal;
-            }
-          }
-          
-          if (anio === filtros.anio) {
-            resumen.normal.totalVentasAnio += precioTotal;
-            if (venta.metodoPago === 'Efectivo') {
-              resumen.normal.totalEfectivoAnio += precioTotal;
-            } else if (venta.metodoPago === 'Punto') {
-              resumen.normal.totalPuntoAnio += precioTotal;
-            } else if (venta.metodoPago === 'PagoMovil') {
-              resumen.normal.totalPagoMovilAnio += precioTotal;
-            }
-          }
-          
-          if (fecha >= startOfWeek && fecha <= endOfWeek) {
-            resumen.normal.totalVentasSemana += precioTotal;
-            if (venta.metodoPago === 'Efectivo') {
-              resumen.normal.totalEfectivoSemana += precioTotal;
-            } else if (venta.metodoPago === 'Punto') {
-              resumen.normal.totalPuntoSemana += precioTotal;
-            } else if (venta.metodoPago === 'PagoMovil') {
-              resumen.normal.totalPagoMovilSemana += precioTotal;
-            }
-          }
-        } else if (tipo === 'especial') {
-          if (mes === filtros.mes) {
-            resumen.especial.totalVentasMes += precioTotal;
-            if (venta.metodoPago === 'Efectivo') {
-              resumen.especial.totalEfectivoMes += precioTotal;
-            } else if (venta.metodoPago === 'Punto') {
-              resumen.especial.totalPuntoMes += precioTotal;
-            } else if (venta.metodoPago === 'PagoMovil') {
-              resumen.especial.totalPagoMovilMes += precioTotal;
-            }
-          }
-          
-          if (anio === filtros.anio) {
-            resumen.especial.totalVentasAnio += precioTotal;
-            if (venta.metodoPago === 'Efectivo') {
-              resumen.especial.totalEfectivoAnio += precioTotal;
-            } else if (venta.metodoPago === 'Punto') {
-              resumen.especial.totalPuntoAnio += precioTotal;
-            } else if (venta.metodoPago === 'PagoMovil') {
-              resumen.especial.totalPagoMovilAnio += precioTotal;
-            }
-          }
-          
-          if (fecha >= startOfWeek && fecha <= endOfWeek) {
-            resumen.especial.totalVentasSemana += precioTotal;
-            if (venta.metodoPago === 'Efectivo') {
-              resumen.especial.totalEfectivoSemana += precioTotal;
-            } else if (venta.metodoPago === 'Punto') {
-              resumen.especial.totalPuntoSemana += precioTotal;
-            } else if (venta.metodoPago === 'PagoMovil') {
-              resumen.especial.totalPagoMovilSemana += precioTotal;
-            }
-          }
-        } else if (tipo === 'superespecial') {
-          if (mes === filtros.mes) {
-            resumen.superEspecial.totalVentasMes += precioTotal;
-            if (venta.metodoPago === 'Efectivo') {
-              resumen.superEspecial.totalEfectivoMes += precioTotal;
-            } else if (venta.metodoPago === 'Punto') {
-              resumen.superEspecial.totalPuntoMes += precioTotal;
-            } else if (venta.metodoPago === 'PagoMovil') {
-              resumen.superEspecial.totalPagoMovilMes += precioTotal;
-            }
-          }
-          
-          if (anio === filtros.anio) {
-            resumen.superEspecial.totalVentasAnio += precioTotal;
-            if (venta.metodoPago === 'Efectivo') {
-              resumen.superEspecial.totalEfectivoAnio += precioTotal;
-            } else if (venta.metodoPago === 'Punto') {
-              resumen.superEspecial.totalPuntoAnio += precioTotal;
-            } else if (venta.metodoPago === 'PagoMovil') {
-              resumen.superEspecial.totalPagoMovilAnio += precioTotal;
-            }
-          }
-          
-          if (fecha >= startOfWeek && fecha <= endOfWeek) {
-            resumen.superEspecial.totalVentasSemana += precioTotal;
-            if (venta.metodoPago === 'Efectivo') {
-              resumen.superEspecial.totalEfectivoSemana += precioTotal;
-            } else if (venta.metodoPago === 'Punto') {
-              resumen.superEspecial.totalPuntoSemana += precioTotal;
-            } else if (venta.metodoPago === 'PagoMovil') {
-              resumen.superEspecial.totalPagoMovilSemana += precioTotal;
-            }
-          }
-        }
       });
     
       setResumenVentas(resumen);
@@ -440,12 +331,11 @@ const HeladoApp = () => {
     calcularResumenVentas();
   }, [ventasDia, filtros]);
 
+  // Efecto para resumen de producción
   useEffect(() => {
-    // Calcular resumen de producción
     const calcularResumenProduccion = () => {
       const filtradas = aplicarFiltros();
       
-      // Inicializar el objeto de resumen
       const resumen = {
         totalProduccionDia: 0,
         totalProduccionSemana: 0,
@@ -461,54 +351,12 @@ const HeladoApp = () => {
         totalMaquinaMantecadoraSemana: 0,
         totalMaquinaMantecadoraMes: 0,
         totalMaquinaMantecadoraAnio: 0,
-        normal: {
-          totalProduccionDia: 0,
-          totalProduccionSemana: 0,
-          totalProduccionMes: 0,
-          totalProduccionAnio: 0,
-          totalPrecioMayor: 0,
-          totalPrecioDetal: 0,
-          totalMaquinaSoftDia: 0,
-          totalMaquinaSoftSemana: 0,
-          totalMaquinaSoftMes: 0,
-          totalMaquinaSoftAnio: 0,
-          totalMaquinaMantecadoraDia: 0,
-          totalMaquinaMantecadoraSemana: 0,
-          totalMaquinaMantecadoraMes: 0,
-          totalMaquinaMantecadoraAnio: 0
-        },
-        especial: {
-          totalProduccionDia: 0,
-          totalProduccionSemana: 0,
-          totalProduccionMes: 0,
-          totalProduccionAnio: 0,
-          totalPrecioMayor: 0,
-          totalPrecioDetal: 0,    
-          totalMaquinaSoftDia: 0,
-          totalMaquinaSoftSemana: 0,
-          totalMaquinaSoftMes: 0,
-          totalMaquinaSoftAnio: 0,
-          totalMaquinaMantecadoraDia: 0,
-          totalMaquinaMantecadoraSemana: 0,
-          totalMaquinaMantecadoraMes: 0,
-          totalMaquinaMantecadoraAnio: 0
-        },
-        superEspecial: {
-          totalProduccionDia: 0,
-          totalProduccionSemana: 0,
-          totalProduccionMes: 0,
-          totalProduccionAnio: 0,
-          totalPrecioMayor: 0,
-          totalPrecioDetal: 0,
-          totalMaquinaSoftDia: 0,
-          totalMaquinaSoftSemana: 0,
-          totalMaquinaSoftMes: 0,
-          totalMaquinaSoftAnio: 0,
-          totalMaquinaMantecadoraDia: 0,
-          totalMaquinaMantecadoraSemana: 0,
-          totalMaquinaMantecadoraMes: 0,
-          totalMaquinaMantecadoraAnio: 0
-        }
+        normal: { ...resumenProduccion.normal },
+        especial: { ...resumenProduccion.especial },
+        superEspecial: { ...resumenProduccion.superEspecial },
+        "1lt": { ...resumenProduccion["1lt"] },
+        "2lt": { ...resumenProduccion["2lt"] },
+        "4lt": { ...resumenProduccion["4lt"] }
       };
     
       // Procesar producción del día (filtrada)
@@ -530,26 +378,15 @@ const HeladoApp = () => {
         }
         
         // Por tipo
-        if (tipo === 'normal') {
-          resumen.normal.totalProduccionDia += cantidad;
+        if (resumen[tipo]) {
+          resumen[tipo].totalProduccionDia += cantidad;
+          resumen[tipo].totalPrecioMayor += precioMayor;
+          resumen[tipo].totalPrecioDetal += precioDetal;
+          
           if (item.maquina === 'soft') {
-            resumen.normal.totalMaquinaSoftDia += cantidad;
+            resumen[tipo].totalMaquinaSoftDia += cantidad;
           } else {
-            resumen.normal.totalMaquinaMantecadoraDia += cantidad;
-          }
-        } else if (tipo === 'especial') {
-          resumen.especial.totalProduccionDia += cantidad;
-          if (item.maquina === 'soft') {
-            resumen.especial.totalMaquinaSoftDia += cantidad;
-          } else {
-            resumen.especial.totalMaquinaMantecadoraDia += cantidad;
-          }
-        } else if (tipo === 'superespecial') {
-          resumen.superEspecial.totalProduccionDia += cantidad;
-          if (item.maquina === 'soft') {
-            resumen.superEspecial.totalMaquinaSoftDia += cantidad;
-          } else {
-            resumen.superEspecial.totalMaquinaMantecadoraDia += cantidad;
+            resumen[tipo].totalMaquinaMantecadoraDia += cantidad;
           }
         }
       });
@@ -596,85 +433,31 @@ const HeladoApp = () => {
         }
     
         // Por tipo
-        if (tipo === 'normal') {
+        if (resumen[tipo]) {
           if (mes === filtros.mes) {
-            resumen.normal.totalProduccionMes += cantidad;
+            resumen[tipo].totalProduccionMes += cantidad;
             if (item.maquina === 'soft') {
-              resumen.normal.totalMaquinaSoftMes += cantidad;
+              resumen[tipo].totalMaquinaSoftMes += cantidad;
             } else {
-              resumen.normal.totalMaquinaMantecadoraMes += cantidad;
+              resumen[tipo].totalMaquinaMantecadoraMes += cantidad;
             }
           }
           
           if (anio === filtros.anio) {
-            resumen.normal.totalProduccionAnio += cantidad;
+            resumen[tipo].totalProduccionAnio += cantidad;
             if (item.maquina === 'soft') {
-              resumen.normal.totalMaquinaSoftAnio += cantidad;
+              resumen[tipo].totalMaquinaSoftAnio += cantidad;
             } else {
-              resumen.normal.totalMaquinaMantecadoraAnio += cantidad;
+              resumen[tipo].totalMaquinaMantecadoraAnio += cantidad;
             }
           }
           
           if (fecha >= startOfWeek && fecha <= endOfWeek) {
-            resumen.normal.totalProduccionSemana += cantidad;
+            resumen[tipo].totalProduccionSemana += cantidad;
             if (item.maquina === 'soft') {
-              resumen.normal.totalMaquinaSoftSemana += cantidad;
+              resumen[tipo].totalMaquinaSoftSemana += cantidad;
             } else {
-              resumen.normal.totalMaquinaMantecadoraSemana += cantidad;
-            }
-          }
-        } else if (tipo === 'especial') {
-          if (mes === filtros.mes) {
-            resumen.especial.totalProduccionMes += cantidad;
-            if (item.maquina === 'soft') {
-              resumen.especial.totalMaquinaSoftMes += cantidad;
-            } else {
-              resumen.especial.totalMaquinaMantecadoraMes += cantidad;
-            }
-          }
-          
-          if (anio === filtros.anio) {
-            resumen.especial.totalProduccionAnio += cantidad;
-            if (item.maquina === 'soft') {
-              resumen.especial.totalMaquinaSoftAnio += cantidad;
-            } else {
-              resumen.especial.totalMaquinaMantecadoraAnio += cantidad;
-            }
-          }
-          
-          if (fecha >= startOfWeek && fecha <= endOfWeek) {
-            resumen.especial.totalProduccionSemana += cantidad;
-            if (item.maquina === 'soft') {
-              resumen.especial.totalMaquinaSoftSemana += cantidad;
-            } else {
-              resumen.especial.totalMaquinaMantecadoraSemana += cantidad;
-            }
-          }
-        } else if (tipo === 'superespecial') {
-          if (mes === filtros.mes) {
-            resumen.superEspecial.totalProduccionMes += cantidad;
-            if (item.maquina === 'soft') {
-              resumen.superEspecial.totalMaquinaSoftMes += cantidad;
-            } else {
-              resumen.superEspecial.totalMaquinaMantecadoraMes += cantidad;
-            }
-          }
-          
-          if (anio === filtros.anio) {
-            resumen.superEspecial.totalProduccionAnio += cantidad;
-            if (item.maquina === 'soft') {
-              resumen.superEspecial.totalMaquinaSoftAnio += cantidad;
-            } else {
-              resumen.superEspecial.totalMaquinaMantecadoraAnio += cantidad;
-            }
-          }
-          
-          if (fecha >= startOfWeek && fecha <= endOfWeek) {
-            resumen.superEspecial.totalProduccionSemana += cantidad;
-            if (item.maquina === 'soft') {
-              resumen.superEspecial.totalMaquinaSoftSemana += cantidad;
-            } else {
-              resumen.superEspecial.totalMaquinaMantecadoraSemana += cantidad;
+              resumen[tipo].totalMaquinaMantecadoraSemana += cantidad;
             }
           }
         }
@@ -686,37 +469,33 @@ const HeladoApp = () => {
     calcularResumenProduccion();
   }, [produccionDia, filtros]);
 
+  // Obtener tasa BCV
   useEffect(() => {
     const fetchTasaBCV = async () => {
       try {
-        // Reemplaza con tu endpoint real
         const response = await fetch('https://api.bcv.org.ve/api/tasas');
         const data = await response.json();
-        const tasaUsd = data.usd || 36.5; // Ajusta según la estructura real de la API
+        const tasaUsd = data.usd || 36.5;
         setVentaData(prev => ({ ...prev, tasaBcv: tasaUsd }));
       } catch (error) {
         console.error("Error obteniendo tasa BCV:", error);
-        // Tasa de respaldo
         setVentaData(prev => ({ ...prev, tasaBcv: 36.5 }));
       }
     };
   
     fetchTasaBCV();
-    const interval = setInterval(fetchTasaBCV, 3600000); // Actualiza cada hora
+    const interval = setInterval(fetchTasaBCV, 3600000);
     return () => clearInterval(interval);
   }, []);
 
-  const totalInventario = Object.values(inventario.normal).reduce(
-    (total, cantidad) => total + cantidad,
-    0
-  ) + Object.values(inventario.especial).reduce(
-    (total, cantidad) => total + cantidad,
-    0
-  ) + Object.values(inventario.superEspecial).reduce(
-    (total, cantidad) => total + cantidad,
-    0
+  // Calcular total inventario
+  const totalInventario = Object.values(inventario).reduce(
+    (total, tipo) => total + Object.values(tipo).reduce(
+      (subtotal, cantidad) => subtotal + cantidad, 0
+    ), 0
   );
 
+  // Manejar submit de producción
   const handleSubmitProduccion = (e) => {
     e.preventDefault();
 
@@ -748,14 +527,19 @@ const HeladoApp = () => {
     });
   };
 
+  // Manejar submit de ventas
   const handleSubmitVenta = (nuevasVentas) => {
     setVentasDia([...ventasDia, ...nuevasVentas]);
 
     const nuevoInventario = { ...inventario };
+    
     nuevasVentas.forEach(venta => {
-      const clave = `${venta.sabores} - ${venta.tipoHelado}`;
-      if (nuevoInventario[venta.tipoHelado] && nuevoInventario[venta.tipoHelado][clave]) {
-        nuevoInventario[venta.tipoHelado][clave] -= venta.cantidadVendida;
+      // Solo actualizar inventario si no es un producto especial
+      if (!venta.productoEspecial) {
+        const clave = `${venta.sabores} - ${venta.tipoHelado}`;
+        if (nuevoInventario[venta.tipoHelado] && nuevoInventario[venta.tipoHelado][clave]) {
+          nuevoInventario[venta.tipoHelado][clave] -= venta.cantidadVendida;
+        }
       }
     });
 
@@ -766,13 +550,14 @@ const HeladoApp = () => {
       cantidadVendida: "",
       precioTotal: "", 
       precioTotalBs: "",
-      precioTotal: "",
       sabores: "",
       tipoHelado: "normal",
       metodoPago: "Punto",
+      productoEspecial: "",
     });
   };
 
+  // Funciones de edición y eliminación
   const handleEdit = (index) => {
     setFormData(produccionDia[index]);
     setEditIndex(index);
@@ -786,6 +571,7 @@ const HeladoApp = () => {
     }
   };
 
+  // Exportar a Excel
   const exportToExcel = () => {
     const datosConMoneda = produccionDia.map(item => ({
       ...item,
@@ -799,44 +585,34 @@ const HeladoApp = () => {
     saveAs(blob, "produccion_helados.xlsx");
   };
 
+  // Exportar a PDF
   const exportToPDF = () => {
     try {
       const doc = new jsPDF();
-      
-      // Configuración de estilos
-      const colorPrincipal = '#E91E63'; // Fucsia
-      const colorSecundario = '#4CAF50'; // Verde
+      const colorPrincipal = '#E91E63';
+      const colorSecundario = '#4CAF50';
       const pageWidth = doc.internal.pageSize.getWidth();
       
-      // Logo (reemplaza con tu imagen)
-      const logoUrl = 'https://i.imgur.com/GkhD8en.jpg';
-      doc.addImage(logoUrl, 'JPEG', pageWidth - 30, 10, 20, 20);
+      doc.addImage('https://i.imgur.com/GkhD8en.jpg', 'JPEG', pageWidth - 30, 10, 20, 20);
       
-      // Encabezado
       doc.setFontSize(18);
       doc.setTextColor(colorPrincipal);
       doc.text("Reporte de Producción de Helados", pageWidth / 2, 20, { align: 'center' });
 
-        // Nota sobre precios
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text("Nota: Los precios al por mayor se registran en USD y los precios al detal en Bs", 14, 30);
-      
-      // Fecha del reporte
       doc.setFontSize(10);
       doc.setTextColor(100);
-      doc.text(`Generado: ${new Date().toLocaleDateString()}`, 14, 30);
+      doc.text("Nota: Los precios al por mayor se registran en USD y los precios al detal en Bs", 14, 30);
+      doc.text(`Generado: ${new Date().toLocaleDateString()}`, 14, 35);
       
-      // Tabla con estilos
       autoTable(doc, {
-        startY: 40,
+        startY: 45,
         head: [
           [
             { content: "Fecha", styles: { fillColor: colorSecundario } },
             { content: "Sabor", styles: { fillColor: colorSecundario } },
             { content: "Tipo", styles: { fillColor: colorSecundario } },
-            { content: "Precio Mayor (USD)", styles: { fillColor: colorSecundario } },
-            { content: "Precio Detal (Bs)", styles: { fillColor: colorSecundario } },
+            { content: "Precio Mayor", styles: { fillColor: colorSecundario } },
+            { content: "Precio Detal", styles: { fillColor: colorSecundario } },
             { content: "Cantidad", styles: { fillColor: colorSecundario } },
             { content: "Máquina", styles: { fillColor: colorSecundario } }
           ]
@@ -851,7 +627,7 @@ const HeladoApp = () => {
           item.maquina
         ]),
         headStyles: {
-          textColor: 255, // Texto blanco
+          textColor: 255,
           fontStyle: 'bold'
         },
         alternateRowStyles: {
@@ -865,7 +641,6 @@ const HeladoApp = () => {
         }
       });
       
-      // Pie de página
       const finalY = doc.lastAutoTable.finalY + 10;
       doc.setDrawColor(colorPrincipal);
       doc.setLineWidth(0.3);
@@ -875,7 +650,6 @@ const HeladoApp = () => {
       doc.setTextColor(100);
       doc.text("Helados para todos - Sistema de Producción", pageWidth / 2, finalY + 10, { align: 'center' });
       
-      // Guardar PDF
       doc.save(`reporte_produccion_${new Date().getTime()}.pdf`);
       
     } catch (error) {
@@ -883,6 +657,8 @@ const HeladoApp = () => {
       alert("Ocurrió un error al generar el reporte. Por favor intente nuevamente.");
     }
   };
+
+  // Aplicar filtros
   const aplicarFiltros = () => {
     return produccionDia.filter((item) => {
       const fechaSplit = item.fecha.split("/");
@@ -928,6 +704,7 @@ const HeladoApp = () => {
     });
   };
 
+  // Aplicar filtros de ventas
   const aplicarFiltrosVentas = () => {
     return ventasDia.filter((venta) => {
       const fechaSplit = venta.fecha.split("/");
@@ -960,6 +737,7 @@ const HeladoApp = () => {
     });
   };
 
+  // Limpiar filtros
   const limpiarFiltros = () => {
     setFiltros({
       sabor: "",
@@ -973,6 +751,7 @@ const HeladoApp = () => {
     });
   };
 
+  // Renderizado
   return (
     <div className="p-6">
       <div className="mb-4">

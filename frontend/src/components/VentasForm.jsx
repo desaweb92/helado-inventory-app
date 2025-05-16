@@ -10,6 +10,7 @@ const VentasForm = ({
 }) => {
   const [saboresDisponibles, setSaboresDisponibles] = useState([]);
   const [saboresSeleccionados, setSaboresSeleccionados] = useState([]);
+  const [productosEspeciales, setProductosEspeciales] = useState([]);
   const [tasaBCV, setTasaBCV] = useState({ valor: 0, fecha: '' });
   const logoOriginalAncho = 800;
   const logoOriginalAlto = 600;
@@ -123,7 +124,11 @@ const VentasForm = ({
               ? "Normal"
               : venta.tipoHelado === "especial"
               ? "Especial"
-              : "Super Especial",
+              : venta.tipoHelado === "barquilla_bolitas"
+              ? "Barquilla Bolitas"
+              : venta.tipoHelado === "barquilla_soft"
+              ? "Barquilla Soft"
+              : "Sundae",
             venta.cantidadVendida || 0,
             (parseFloat(venta.precioUnitario) || 0).toFixed(2),
             (parseFloat(venta.precioTotal) || 0).toFixed(2),
@@ -252,6 +257,13 @@ const VentasForm = ({
           return sabor;
         });
         setSaboresSeleccionados(newSabores);
+        
+        const newProductos = productosEspeciales.map(producto => ({
+          ...producto,
+          precioUnitario: newData.tipoVenta === "mayor" ? producto.precioMayor : producto.precioDetal,
+          precioTotalSabor: (newData.tipoVenta === "mayor" ? producto.precioMayor : producto.precioDetal) * producto.cantidad
+        }));
+        setProductosEspeciales(newProductos);
       }
       
       return newData;
@@ -273,19 +285,94 @@ const VentasForm = ({
   const handleCantidadChange = (e, index) => {
     const newSabores = [...saboresSeleccionados];
     newSabores[index].cantidad = parseInt(e.target.value, 10) || 0;
+    newSabores[index].precioTotalSabor = (newSabores[index].precioUnitario || 0) * newSabores[index].cantidad;
     setSaboresSeleccionados(newSabores);
+  };
+
+  const handleProductoEspecialChange = (e, index) => {
+    const newProductos = [...productosEspeciales];
+    newProductos[index].tipoProducto = e.target.value;
+    newProductos[index].precioMayor = "";
+    newProductos[index].precioDetal = "";
+    newProductos[index].precioUnitario = "";
+    newProductos[index].precioTotalSabor = 0;
+    setProductosEspeciales(newProductos);
+  };
+
+  const handleProductoPrecioMayorChange = (e, index) => {
+    const newProductos = [...productosEspeciales];
+    newProductos[index].precioMayor = e.target.value;
+    
+    if (ventaData.tipoVenta === "mayor") {
+      newProductos[index].precioUnitario = parseFloat(e.target.value) || 0;
+      newProductos[index].precioTotalSabor = newProductos[index].precioUnitario * (newProductos[index].cantidad || 0);
+    }
+    
+    setProductosEspeciales(newProductos);
+  };
+
+  const handleProductoPrecioDetalChange = (e, index) => {
+    const newProductos = [...productosEspeciales];
+    newProductos[index].precioDetal = e.target.value;
+    
+    if (ventaData.tipoVenta === "detal") {
+      newProductos[index].precioUnitario = parseFloat(e.target.value) || 0;
+      newProductos[index].precioTotalSabor = newProductos[index].precioUnitario * (newProductos[index].cantidad || 0);
+    }
+    
+    setProductosEspeciales(newProductos);
+  };
+
+  const handleProductoSaborChange = (e, index) => {
+    const newProductos = [...productosEspeciales];
+    newProductos[index].sabor = e.target.value;
+    setProductosEspeciales(newProductos);
+  };
+
+  const handleProductoCantidadChange = (e, index) => {
+    const newProductos = [...productosEspeciales];
+    newProductos[index].cantidad = parseInt(e.target.value, 10) || 0;
+    newProductos[index].precioTotalSabor = (newProductos[index].precioUnitario || 0) * newProductos[index].cantidad;
+    setProductosEspeciales(newProductos);
   };
 
   const addSabor = () => {
     setSaboresSeleccionados([
       ...saboresSeleccionados,
-      { sabor: "", cantidad: 0, precioTotalSabor: 0, tipoHelado: "normal" },
+      { 
+        sabor: "", 
+        cantidad: 0, 
+        precioUnitario: 0,
+        precioTotalSabor: 0, 
+        tipoHelado: "normal" 
+      },
+    ]);
+  };
+
+  const addProducto = () => {
+    setProductosEspeciales([
+      ...productosEspeciales,
+      { 
+        tipoProducto: "barquilla_bolitas",
+        sabor: "",
+        cantidad: 0,
+        precioMayor: "",
+        precioDetal: "",
+        precioUnitario: "",
+        precioTotalSabor: 0,
+        tipoHelado: "especial"
+      },
     ]);
   };
 
   const removeSabor = (index) => {
     const newSabores = saboresSeleccionados.filter((_, i) => i !== index);
     setSaboresSeleccionados(newSabores);
+  };
+
+  const removeProducto = (index) => {
+    const newProductos = productosEspeciales.filter((_, i) => i !== index);
+    setProductosEspeciales(newProductos);
   };
 
   useEffect(() => {
@@ -299,6 +386,7 @@ const VentasForm = ({
       let precioTotalBs = 0;
       let cantidadTotal = 0;
   
+      // Calcular para sabores normales
       const newSabores = saboresSeleccionados.map((sabor) => {
         const produccion = produccionDia.find(
           (item) => item.sabor === sabor.sabor && item.tipo === sabor.tipoHelado
@@ -331,8 +419,34 @@ const VentasForm = ({
         return sabor;
       });
   
+      // Calcular para productos especiales
+      const newProductos = productosEspeciales.map(producto => {
+        const precioTotalSabor = producto.precioTotalSabor || 0;
+        
+        if (ventaData.tipoVenta === "mayor") {
+          precioTotal += precioTotalSabor;
+          precioTotalBs += precioTotalSabor * parseFloat(tasaBCV.valor);
+        } else {
+          precioTotalBs += precioTotalSabor;
+          precioTotal += precioTotalSabor / parseFloat(tasaBCV.valor);
+        }
+        
+        cantidadTotal += producto.cantidad || 0;
+        return {
+          ...producto,
+          precioTotalSabor,
+          precioTotalSaborBs: ventaData.tipoVenta === "mayor"
+            ? precioTotalSabor * parseFloat(tasaBCV.valor)
+            : precioTotalSabor
+        };
+      });
+  
       if (JSON.stringify(newSabores) !== JSON.stringify(saboresSeleccionados)) {
         setSaboresSeleccionados(newSabores);
+      }
+      
+      if (JSON.stringify(newProductos) !== JSON.stringify(productosEspeciales)) {
+        setProductosEspeciales(newProductos);
       }
   
       const newVentaData = {
@@ -340,9 +454,16 @@ const VentasForm = ({
         precioTotal: precioTotal.toFixed(2),
         precioTotalBs: precioTotalBs.toFixed(2),
         cantidadVendida: cantidadTotal.toString(),
-        sabores: newSabores
-          .map((sabor) => `${sabor.sabor} (${sabor.tipoHelado})`)
-          .join(", "),
+        sabores: [
+          ...newSabores.map((sabor) => `${sabor.sabor} (${sabor.tipoHelado})`),
+          ...newProductos.map(producto => {
+            let tipo = "";
+            if (producto.tipoProducto === "barquilla_bolitas") tipo = "Barquilla Bolitas";
+            else if (producto.tipoProducto === "barquilla_soft") tipo = "Barquilla Soft";
+            else if (producto.tipoProducto === "sundae") tipo = "Sundae";
+            return `${producto.sabor} (${tipo})`;
+          })
+        ].join(", "),
         tasaBcv: parseFloat(tasaBCV.valor)
       };
   
@@ -352,13 +473,14 @@ const VentasForm = ({
     };
   
     calcularPrecios();
-  }, [saboresSeleccionados, ventaData.tipoVenta, produccionDia, tasaBCV]);
+  }, [saboresSeleccionados, productosEspeciales, ventaData.tipoVenta, produccionDia, tasaBCV]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
   
     try {
-      const nuevasVentas = saboresSeleccionados.map((sabor) => ({
+      // Crear ventas para sabores normales
+      const ventasNormales = saboresSeleccionados.map((sabor) => ({
         fecha: new Date().toLocaleDateString("es-ES"),
         tipoVenta: ventaData.tipoVenta,
         cantidadVendida: sabor.cantidad,
@@ -374,16 +496,40 @@ const VentasForm = ({
         metodoPago: ventaData.metodoPago,
         observaciones: ventaData.observaciones,
         tasaBcv: parseFloat(tasaBCV.valor),
-        moneda: ventaData.tipoVenta === "mayor" ? "USD" : "Bs"
+        moneda: ventaData.tipoVenta === "mayor" ? "USD" : "Bs",
+        productoEspecial: ""
+      }));
+      
+      // Crear ventas para productos especiales
+      const ventasEspeciales = productosEspeciales.map((producto) => ({
+        fecha: new Date().toLocaleDateString("es-ES"),
+        tipoVenta: ventaData.tipoVenta,
+        cantidadVendida: producto.cantidad,
+        precioUnitario: parseFloat(producto.precioUnitario) || 0,
+        precioTotal: ventaData.tipoVenta === "mayor" 
+          ? parseFloat(producto.precioTotalSabor) 
+          : parseFloat(producto.precioTotalSabor) / parseFloat(tasaBCV.valor),
+        precioTotalBs: ventaData.tipoVenta === "mayor"
+          ? parseFloat(producto.precioTotalSabor) * parseFloat(tasaBCV.valor)
+          : parseFloat(producto.precioTotalSabor),
+        sabores: producto.sabor,
+        tipoHelado: producto.tipoProducto,
+        metodoPago: ventaData.metodoPago,
+        observaciones: ventaData.observaciones,
+        tasaBcv: parseFloat(tasaBCV.valor),
+        moneda: ventaData.tipoVenta === "mayor" ? "USD" : "Bs",
+        productoEspecial: producto.tipoProducto
       }));
   
-      await handleSubmitVenta(nuevasVentas);
+      const todasLasVentas = [...ventasNormales, ...ventasEspeciales];
+      await handleSubmitVenta(todasLasVentas);
       
-      nuevasVentas.forEach((venta) => {
+      todasLasVentas.forEach((venta) => {
         setTimeout(() => generarFacturaPDF(venta), 100);
       });
   
       setSaboresSeleccionados([]);
+      setProductosEspeciales([]);
     } catch (error) {
       console.error("Error al procesar la venta:", error);
       alert("Hubo un error al procesar la venta. Por favor intente nuevamente.");
@@ -494,94 +640,210 @@ const VentasForm = ({
             placeholder="Ingrese cualquier comentario sobre la venta"
           />
         </div>
-        {saboresSeleccionados.map((sabor, index) => (
-          <div
-            key={index}
-            className="md:col-span-2 grid grid-cols-1 md:grid-cols-5 gap-2 mb-4"
-          >
-            <div className="col-span-1">
-              <label className="block text-gray-700 text-sm">Sabor</label>
-              <select
-                value={sabor.sabor}
-                onChange={(e) => handleSaborChange(e, index)}
-                className="w-full px-3 py-2 border rounded-lg"
-                required
+
+        {/* Sección de sabores normales */}
+        {saboresSeleccionados.length > 0 && (
+          <div className="md:col-span-2">
+            <h3 className="text-lg font-semibold mb-2">Helados Normales</h3>
+            {saboresSeleccionados.map((sabor, index) => (
+              <div
+                key={`sabor-${index}`}
+                className="md:col-span-2 grid grid-cols-1 md:grid-cols-5 gap-2 mb-4"
               >
-                <option value="">Seleccionar</option>
-                {saboresDisponibles.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="col-span-1">
-              <label className="block text-gray-700 text-sm">Tipo</label>
-              <select
-                value={sabor.tipoHelado}
-                onChange={(e) => handleTipoHeladoChange(e, index)}
-                className="w-full px-3 py-2 border rounded-lg"
-                required
-              >
-                <option value="normal">Normal</option>
-                <option value="especial">Especial</option>
-                <option value="superEspecial">Super Especial</option>
-              </select>
-            </div>
-            <div className="col-span-1">
-              <label className="block text-gray-700 text-sm">Cantidad</label>
-              <input
-                type="number"
-                value={sabor.cantidad}
-                onChange={(e) => handleCantidadChange(e, index)}
-                className="w-full px-3 py-2 border rounded-lg"
-                min="1"
-                required
-              />
-            </div>
-            <div className="col-span-1">
-              <label className="block text-gray-700 text-sm">Subtotal</label>
-              <div className="space-y-1">
-                <input
-                  type="text"
-                  value={`${ventaData.tipoVenta === "mayor" ? "USD" : "Bs"} ${(parseFloat(sabor.precioTotalSabor) || 0).toFixed(2)}`}
-                  className="w-full px-3 py-2 border rounded-lg text-sm"
-                  readOnly
-                />
-                <input
-                  type="text"
-                  value={`Bs ${(ventaData.tipoVenta === "mayor" 
-                    ? (parseFloat(sabor.precioTotalSabor) || 0) * parseFloat(tasaBCV.valor)
-                    : (parseFloat(sabor.precioTotalSabor) || 0)
-                  ).toFixed(2)}`}
-                  className="w-full px-3 py-2 border rounded-lg text-sm"
-                  readOnly
-                />
+                <div className="col-span-1">
+                  <label className="block text-gray-700 text-sm">Sabor</label>
+                  <select
+                    value={sabor.sabor}
+                    onChange={(e) => handleSaborChange(e, index)}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    required
+                  >
+                    <option value="">Seleccionar</option>
+                    {saboresDisponibles.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-span-1">
+                  <label className="block text-gray-700 text-sm">Tipo</label>
+                  <select
+                    value={sabor.tipoHelado}
+                    onChange={(e) => handleTipoHeladoChange(e, index)}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    required
+                  >
+                    <option value="normal">Normal</option>
+                    <option value="especial">Especial</option>
+                    <option value="superEspecial">Super Especial</option>
+                  </select>
+                </div>
+                <div className="col-span-1">
+                  <label className="block text-gray-700 text-sm">Cantidad</label>
+                  <input
+                    type="number"
+                    value={sabor.cantidad}
+                    onChange={(e) => handleCantidadChange(e, index)}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    min="1"
+                    required
+                  />
+                </div>
+                <div className="col-span-1">
+                  <label className="block text-gray-700 text-sm">Subtotal</label>
+                  <div className="space-y-1">
+                    <input
+                      type="text"
+                      value={`${ventaData.tipoVenta === "mayor" ? "USD" : "Bs"} ${(parseFloat(sabor.precioTotalSabor) || 0).toFixed(2)}`}
+                      className="w-full px-3 py-2 border rounded-lg text-sm"
+                      readOnly
+                    />
+                    <input
+                      type="text"
+                      value={`Bs ${(ventaData.tipoVenta === "mayor" 
+                        ? (parseFloat(sabor.precioTotalSabor) || 0) * parseFloat(tasaBCV.valor)
+                        : (parseFloat(sabor.precioTotalSabor) || 0)
+                      ).toFixed(2)}`}
+                      className="w-full px-3 py-2 border rounded-lg text-sm"
+                      readOnly
+                    />
+                  </div>
+                </div>
+                <div className="col-span-1 flex items-end">
+                  <button
+                    type="button"
+                    onClick={() => removeSabor(index)}
+                    className="w-full bg-red-600 text-white px-4 py-2 rounded-lg"
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </div>
-            </div>
-            <div className="col-span-1 flex items-end">
-              <button
-                type="button"
-                onClick={() => removeSabor(index)}
-                className="w-full bg-red-600 text-white px-4 py-2 rounded-lg"
-              >
-                Eliminar
-              </button>
-            </div>
+            ))}
           </div>
-        ))}
-        <div className="md:col-span-2 flex flex-col items-center justify-center">
-          <button
-            type="button"
-            onClick={addSabor}
-            className="md:w-[20%] w-full bg-[#4CAF50] text-white px-4 py-2 rounded-lg mb-4"
-          >
-            Agregar Sabor
-          </button>
+        )}
+
+        {/* Sección de productos especiales */}
+        {productosEspeciales.length > 0 && (
+          <div className="md:col-span-2">
+            <h3 className="text-lg font-semibold mb-2">Productos Especiales</h3>
+            {productosEspeciales.map((producto, index) => (
+              <div
+                key={`producto-${index}`}
+                className="md:col-span-2 grid grid-cols-1 md:grid-cols-6 gap-2 mb-4"
+              >
+                <div className="col-span-1">
+                  <label className="block text-gray-700 text-sm">Producto</label>
+                  <select
+                    value={producto.tipoProducto}
+                    onChange={(e) => handleProductoEspecialChange(e, index)}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    required
+                  >
+                    <option value="barquilla_bolitas">Barquilla Bolitas</option>
+                    <option value="barquilla_soft">Barquilla Soft</option>
+                    <option value="sundae">Sundae</option>
+                  </select>
+                </div>
+                <div className="col-span-1">
+                  <label className="block text-gray-700 text-sm">Sabor</label>
+                  <select
+                    value={producto.sabor}
+                    onChange={(e) => handleProductoSaborChange(e, index)}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    required
+                  >
+                    <option value="">Seleccionar</option>
+                    {saboresDisponibles.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-span-1">
+                  <label className="block text-gray-700 text-sm">Cantidad</label>
+                  <input
+                    type="number"
+                    value={producto.cantidad}
+                    onChange={(e) => handleProductoCantidadChange(e, index)}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    min="1"
+                    required
+                  />
+                </div>
+                <div className="col-span-1">
+                  <label className="block text-gray-700 text-sm">
+                    {ventaData.tipoVenta === "mayor" ? "Precio Unitario (USD)" : "Precio Unitario (Bs)"}
+                  </label>
+                  <input
+                    type="number"
+                    value={ventaData.tipoVenta === "mayor" ? producto.precioMayor : producto.precioDetal}
+                    onChange={ventaData.tipoVenta === "mayor" 
+                      ? (e) => handleProductoPrecioMayorChange(e, index)
+                      : (e) => handleProductoPrecioDetalChange(e, index)}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div className="col-span-1">
+                  <label className="block text-gray-700 text-sm">Subtotal</label>
+                  <div className="space-y-1">
+                    <input
+                      type="text"
+                      value={`${ventaData.tipoVenta === "mayor" ? "USD" : "Bs"} ${(parseFloat(producto.precioTotalSabor) || 0).toFixed(2)}`}
+                      className="w-full px-3 py-2 border rounded-lg text-sm"
+                      readOnly
+                    />
+                    <input
+                      type="text"
+                      value={`${ventaData.tipoVenta === "mayor" ? "Bs" : "USD"} ${(ventaData.tipoVenta === "mayor" 
+                        ? (parseFloat(producto.precioTotalSabor) || 0) * parseFloat(tasaBCV.valor)
+                        : (parseFloat(producto.precioTotalSabor) || 0) / parseFloat(tasaBCV.valor)
+                      ).toFixed(2)}`}
+                      className="w-full px-3 py-2 border rounded-lg text-sm"
+                      readOnly
+                    />
+                  </div>
+                </div>
+                <div className="col-span-1 flex items-end">
+                  <button
+                    type="button"
+                    onClick={() => removeProducto(index)}
+                    className="w-full bg-red-600 text-white px-4 py-2 rounded-lg"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="md:col-span-2 flex flex-col items-center justify-center space-y-4">
+          <div className="flex space-x-4">
+            <button
+              type="button"
+              onClick={addSabor}
+              className="md:w-[200px] w-full bg-[#4CAF50] text-white px-4 py-2 rounded-lg"
+            >
+              Agregar Sabor
+            </button>
+            <button
+              type="button"
+              onClick={addProducto}
+              className="md:w-[200px] w-full bg-[#4CAF50] text-white px-4 py-2 rounded-lg"
+            >
+              Agregar Producto
+            </button>
+          </div>
           <button
             type="submit"
-            className="md:w-[20%] w-full bg-[#E91E63] text-white px-4 py-2 rounded-lg hover:bg-green-700"
-            disabled={saboresSeleccionados.length === 0}
+            className="md:w-[200px] w-full bg-[#E91E63] text-white px-4 py-2 rounded-lg hover:bg-green-700"
+            disabled={saboresSeleccionados.length === 0 && productosEspeciales.length === 0}
           >
             Registrar Venta y descargar factura
           </button>

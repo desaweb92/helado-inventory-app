@@ -10,41 +10,27 @@ const Report = ({ inventario }) => {
     if (inventario) {
       const processedData = [];
       
-      // Procesar helados normales
-      Object.entries(inventario.normal || {}).forEach(([clave, cantidad]) => {
-        const [sabor, tipo] = clave.split(' - ');
-        processedData.push({
-          sabor,
-          tipo: 'Normal',
-          cantidad,
-          precioMayor: '$0', // Estos valores deberían venir de tu base de datos
-          precioDetal: '$0'  // O del estado de tu aplicación
+      // Función para procesar cada categoría de inventario
+      const processInventory = (inventory, type) => {
+        Object.entries(inventory || {}).forEach(([clave, cantidad]) => {
+          const [sabor] = clave.split(' - ');
+          processedData.push({
+            sabor,
+            tipo: type,
+            cantidad,
+            precioMayor: '$0', // Estos valores deberían venir de tu base de datos
+            precioDetal: '$0'  // O del estado de tu aplicación
+          });
         });
-      });
+      };
 
-      // Procesar helados especiales
-      Object.entries(inventario.especial || {}).forEach(([clave, cantidad]) => {
-        const [sabor, tipo] = clave.split(' - ');
-        processedData.push({
-          sabor,
-          tipo: 'Especial',
-          cantidad,
-          precioMayor: '$0',
-          precioDetal: '$0'
-        });
-      });
-
-      // Procesar helados super especiales
-      Object.entries(inventario.superEspecial || {}).forEach(([clave, cantidad]) => {
-        const [sabor, tipo] = clave.split(' - ');
-        processedData.push({
-          sabor,
-          tipo: 'Super Especial',
-          cantidad,
-          precioMayor: '$0',
-          precioDetal: '$0'
-        });
-      });
+      // Procesar todos los tipos de helados
+      processInventory(inventario.normal, 'Normal');
+      processInventory(inventario.especial, 'Especial');
+      processInventory(inventario.superEspecial, 'Super Especial');
+      processInventory(inventario['1lt'], 'Tarro 1lt');
+      processInventory(inventario['2lt'], 'Tarro 2lt');
+      processInventory(inventario['4lt'], 'Tarro 4lt');
 
       setReportData(processedData);
     }
@@ -85,7 +71,19 @@ const Report = ({ inventario }) => {
       alternateRowStyles: {
         fillColor: [245, 245, 245]
       },
-      margin: { top: 40 }
+      margin: { top: 40 },
+      styles: {
+        cellPadding: 3,
+        fontSize: 10,
+        valign: 'middle'
+      },
+      columnStyles: {
+        0: { cellWidth: 'auto' },
+        1: { cellWidth: 'auto' },
+        2: { cellWidth: 'auto' },
+        3: { cellWidth: 'auto' },
+        4: { cellWidth: 'auto' }
+      }
     });
 
     // Pie de página
@@ -98,9 +96,31 @@ const Report = ({ inventario }) => {
         doc.internal.pageSize.width - 40,
         doc.internal.pageSize.height - 10
       );
+      // Logo o información adicional
+      doc.addImage('https://i.imgur.com/GkhD8en.jpg', 'JPEG', 15, doc.internal.pageSize.height - 15, 20, 10);
     }
 
     doc.save('inventario_helados.pdf');
+  };
+
+  // Función para obtener estilos según el tipo de helado
+  const getTypeStyle = (type) => {
+    switch(type) {
+      case 'Normal':
+        return 'bg-blue-100 text-blue-800';
+      case 'Especial':
+        return 'bg-purple-100 text-purple-800';
+      case 'Super Especial':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Tarro 1lt':
+        return 'bg-orange-100 text-orange-800';
+      case 'Tarro 2lt':
+        return 'bg-red-100 text-red-800';
+      case 'Tarro 4lt':
+        return 'bg-pink-100 text-pink-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
   };
 
   return (
@@ -132,18 +152,14 @@ const Report = ({ inventario }) => {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {reportData.map((item, index) => (
-                <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100'}>
                   <td className="py-3 px-4 text-gray-800">{item.sabor}</td>
                   <td className="py-3 px-4">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      item.tipo === 'Normal' ? 'bg-blue-100 text-blue-800' :
-                      item.tipo === 'Especial' ? 'bg-purple-100 text-purple-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
+                    <span className={`px-2 py-1 text-xs rounded-full font-medium ${getTypeStyle(item.tipo)}`}>
                       {item.tipo}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-gray-800">{item.cantidad}</td>
+                  <td className="py-3 px-4 text-gray-800 font-medium">{item.cantidad}</td>
                   <td className="py-3 px-4 text-green-600 font-medium">{item.precioMayor}</td>
                   <td className="py-3 px-4 text-green-600 font-medium">{item.precioDetal}</td>
                 </tr>
