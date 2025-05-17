@@ -106,6 +106,43 @@ const VentasForm = ({
       doc.setTextColor(colorFucsia);
       doc.text("Detalles de la Venta", 14, 125);
   
+      // Preparar los datos para la tabla
+      const items = [];
+      
+      // Agregar sabores normales
+      venta.saboresNormales.forEach(item => {
+        items.push([
+          item.sabor,
+          item.tipoHelado === "normal" ? "Normal" : 
+          item.tipoHelado === "especial" ? "Especial" : "Super Especial",
+          item.cantidad,
+          (parseFloat(item.precioUnitario) || 0).toFixed(2),
+          (parseFloat(item.precioTotalSabor) || 0).toFixed(2),
+          (parseFloat(item.precioTotalSaborBs) || 0).toFixed(2)
+        ]);
+      });
+      
+      // Agregar productos especiales
+      venta.productosEspeciales.forEach(item => {
+        let tipo = "";
+        if (item.tipoProducto === "barquilla_bolitas") tipo = `Barquilla bolita (${item.bolitas === "doble" ? "Doble" : "Simple"})`;
+        else if (item.tipoProducto === "barquilla_soft") tipo = "Barquilla soft";
+        else if (item.tipoProducto === "barquilla_yogurt") tipo = "Barquilla yogurt";
+        else if (item.tipoProducto === "1lt") tipo = "Tarro 1lt";
+        else if (item.tipoProducto === "2lt") tipo = "Tarro 2lt";
+        else if (item.tipoProducto === "4lt") tipo = "Tarro 4lt";
+        else if (item.tipoProducto === "sundae") tipo = "Sundae";
+        
+        items.push([
+          item.sabor,
+          tipo,
+          item.cantidad,
+          (parseFloat(item.precioUnitario) || 0).toFixed(2),
+          (parseFloat(item.precioTotalSabor) || 0).toFixed(2),
+          (parseFloat(item.precioTotalSaborBs) || 0).toFixed(2)
+        ]);
+      });
+  
       // Tabla con estilo verde
       autoTable(doc, {
         startY: 135,
@@ -117,32 +154,7 @@ const VentasForm = ({
           `Subtotal (${venta.moneda})`,
           "Subtotal (Bs)"
         ]],
-        body: [
-          [
-            venta.sabores || "N/A",
-            venta.tipoHelado === "normal"
-              ? "Normal"
-              : venta.tipoHelado === "especial"
-              ? "Especial"
-              : venta.tipoHelado === "barquilla_bolitas"
-              ? `Barquilla Bolitas (${venta.bolitas === "doble" ? "Doble" : "Simple"})`
-              : venta.tipoHelado === "barquilla_soft"
-              ? "Barquilla Soft"
-              : venta.tipoHelado === "barquilla_yogurt"
-              ? "Barquilla Yogurt"
-              : venta.tipoHelado === "1lt"
-              ? "Tarro 1lt"
-              : venta.tipoHelado === "2lt"
-              ? "Tarro 2lt"
-              : venta.tipoHelado === "4lt"
-              ? "Tarro 4lt"
-              : "Sundae",
-            venta.cantidadVendida || 0,
-            (parseFloat(venta.precioUnitario) || 0).toFixed(2),
-            (parseFloat(venta.precioTotal) || 0).toFixed(2),
-            (parseFloat(venta.precioTotalBs) || 0).toFixed(2)
-          ],
-        ],
+        body: items,
         theme: "grid",
         headStyles: {
           fillColor: colorVerdeOscuro,
@@ -160,31 +172,31 @@ const VentasForm = ({
         margin: { left: 14, right: 14 },
       });
   
-      // Totales con estilo
-      const subtotal = parseFloat(venta.precioTotal) || 0;
-      const subtotalBs = parseFloat(venta.precioTotalBs) || 0;
-  
-      doc.setFontSize(10);
-      doc.setTextColor(60);
-      doc.text("Subtotal:", 150, doc.lastAutoTable.finalY + 15);
-      doc.text(`${venta.moneda} ${subtotal.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 15, {
-        align: "right",
-      });
-      doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 20, {
-        align: "right",
-      });
-  
-      // Totales (sin IVA)
-      doc.setFontSize(11);
-      doc.setTextColor(colorFucsia);
-      doc.setFont(undefined, "bold");
-      doc.text("TOTAL:", 150, doc.lastAutoTable.finalY + 30);
-      doc.text(`${venta.moneda} ${subtotal.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 30, {
-        align: "right",
-      });
-      doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, doc.lastAutoTable.finalY + 35, {
-        align: "right",
-      });
+ // Totales con mejor espaciado
+const subtotal = parseFloat(venta.precioTotal) || 0;
+const subtotalBs = parseFloat(venta.precioTotalBs) || 0;
+
+// Ajusta el espacio después de la tabla (15 = posición inicial)
+const startY = doc.lastAutoTable.finalY + 15;
+
+
+// Subtotal
+doc.setFontSize(10);
+doc.setTextColor(60);
+doc.text("Subtotal:", 130, startY);
+doc.text(`${venta.moneda} ${subtotal.toFixed(2)}`, 180, startY, { align: "right" });
+doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, startY + 5, { align: "right" });
+
+// Espacio extra antes del TOTAL (10 = espacio adicional)
+const espacioExtra = 10;
+
+// TOTAL (más destacado)
+doc.setFontSize(11);
+doc.setTextColor(colorFucsia); // Usa tu color corporativo (#E91E63)
+doc.setFont(undefined, "bold");
+doc.text("TOTAL:", 130, startY + 5 + espacioExtra);
+doc.text(`${venta.moneda} ${subtotal.toFixed(2)}`, 180, startY + 5 + espacioExtra, { align: "right" });
+doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, startY + 10 + espacioExtra, { align: "right" });
   
       // Tasa BCV
       doc.setFontSize(8);
@@ -305,7 +317,15 @@ const VentasForm = ({
     newProductos[index].precioUnitario = "";
     newProductos[index].precioTotalSabor = 0;
     newProductos[index].bolitas = "simple"; // Valor por defecto
-    setProductosEspeciales(newProductos);
+
+     // Si es yogurt, establecer el sabor como "yogurt"
+  if (e.target.value === "barquilla_yogurt") {
+    newProductos[index].sabor = "yogurt";
+  } else {
+    newProductos[index].sabor = "";
+  }
+  
+  setProductosEspeciales(newProductos);
   };
 
   const handleProductoPrecioMayorChange = (e, index) => {
@@ -499,56 +519,60 @@ const VentasForm = ({
     e.preventDefault();
   
     try {
-      // Crear ventas para sabores normales
-      const ventasNormales = saboresSeleccionados.map((sabor) => ({
-        fecha: new Date().toLocaleDateString("es-ES"),
-        tipoVenta: ventaData.tipoVenta,
-        cantidadVendida: sabor.cantidad,
+      // Preparar datos de sabores normales
+      const saboresNormales = saboresSeleccionados.map((sabor) => ({
+        sabor: sabor.sabor,
+        cantidad: sabor.cantidad,
         precioUnitario: parseFloat(sabor.precioUnitario) || 0,
-        precioTotal: ventaData.tipoVenta === "mayor" 
+        precioTotalSabor: ventaData.tipoVenta === "mayor" 
           ? parseFloat(sabor.precioTotalSabor) 
           : parseFloat(sabor.precioTotalSabor) / parseFloat(tasaBCV.valor),
-        precioTotalBs: ventaData.tipoVenta === "mayor"
+        precioTotalSaborBs: ventaData.tipoVenta === "mayor"
           ? parseFloat(sabor.precioTotalSabor) * parseFloat(tasaBCV.valor)
           : parseFloat(sabor.precioTotalSabor),
-        sabores: sabor.sabor,
         tipoHelado: sabor.tipoHelado,
-        metodoPago: ventaData.metodoPago,
-        observaciones: ventaData.observaciones,
-        tasaBcv: parseFloat(tasaBCV.valor),
-        moneda: ventaData.tipoVenta === "mayor" ? "USD" : "Bs",
         productoEspecial: ""
       }));
       
-      // Crear ventas para productos especiales
-      const ventasEspeciales = productosEspeciales.map((producto) => ({
-        fecha: new Date().toLocaleDateString("es-ES"),
-        tipoVenta: ventaData.tipoVenta,
-        cantidadVendida: producto.cantidad,
+      // Preparar datos de productos especiales
+      const productosEspecialesData = productosEspeciales.map((producto) => ({
+        tipoProducto: producto.tipoProducto,
+        sabor: producto.sabor,
+        cantidad: producto.cantidad,
         precioUnitario: parseFloat(producto.precioUnitario) || 0,
-        precioTotal: ventaData.tipoVenta === "mayor" 
+        precioTotalSabor: ventaData.tipoVenta === "mayor" 
           ? parseFloat(producto.precioTotalSabor) 
           : parseFloat(producto.precioTotalSabor) / parseFloat(tasaBCV.valor),
-        precioTotalBs: ventaData.tipoVenta === "mayor"
+        precioTotalSaborBs: ventaData.tipoVenta === "mayor"
           ? parseFloat(producto.precioTotalSabor) * parseFloat(tasaBCV.valor)
           : parseFloat(producto.precioTotalSabor),
-        sabores: producto.sabor,
         tipoHelado: producto.tipoProducto,
-        metodoPago: ventaData.metodoPago,
-        observaciones: ventaData.observaciones,
-        tasaBcv: parseFloat(tasaBCV.valor),
-        moneda: ventaData.tipoVenta === "mayor" ? "USD" : "Bs",
         productoEspecial: producto.tipoProducto,
         bolitas: producto.tipoProducto === "barquilla_bolitas" ? producto.bolitas : undefined
       }));
   
-      const todasLasVentas = [...ventasNormales, ...ventasEspeciales];
-      await handleSubmitVenta(todasLasVentas);
-      
-      todasLasVentas.forEach((venta) => {
-        setTimeout(() => generarFacturaPDF(venta), 100);
-      });
+      // Crear objeto de venta consolidada
+      const ventaConsolidada = {
+        fecha: new Date().toLocaleDateString("es-ES"),
+        tipoVenta: ventaData.tipoVenta,
+        cantidadVendida: ventaData.cantidadVendida,
+        precioTotal: ventaData.precioTotal,
+        precioTotalBs: ventaData.precioTotalBs,
+        metodoPago: ventaData.metodoPago,
+        observaciones: ventaData.observaciones,
+        tasaBcv: parseFloat(tasaBCV.valor),
+        moneda: ventaData.tipoVenta === "mayor" ? "USD" : "Bs",
+        saboresNormales,
+        productosEspeciales: productosEspecialesData
+      };
   
+      // Enviar todas las ventas al backend
+      await handleSubmitVenta([ventaConsolidada]);
+      
+      // Generar una sola factura
+      setTimeout(() => generarFacturaPDF(ventaConsolidada), 100);
+  
+      // Limpiar el formulario
       setSaboresSeleccionados([]);
       setProductosEspeciales([]);
     } catch (error) {
@@ -771,22 +795,38 @@ const VentasForm = ({
                     <option value="sundae">Sundae</option>
                   </select>
                 </div>
-                <div className="col-span-1">
-                  <label className="block text-gray-700 text-sm">Sabor</label>
-                  <select
-                    value={producto.sabor}
-                    onChange={(e) => handleProductoSaborChange(e, index)}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    required
-                  >
-                    <option value="">Seleccionar</option>
-                    {saboresDisponibles.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    {/* Mostrar selector de sabor solo si NO es yogurt */}
+        {producto.tipoProducto !== "barquilla_yogurt" && (
+          <div className="col-span-1">
+            <label className="block text-gray-700 text-sm">Sabor</label>
+            <select
+              value={producto.sabor}
+              onChange={(e) => handleProductoSaborChange(e, index)}
+              className="w-full px-3 py-2 border rounded-lg"
+              required={producto.tipoProducto !== "barquilla_yogurt"}
+            >
+              <option value="">Seleccionar</option>
+              {saboresDisponibles.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        
+        {/* Mostrar campo fijo de sabor yogurt si es yogurt */}
+        {producto.tipoProducto === "barquilla_yogurt" && (
+          <div className="col-span-1">
+            <label className="block text-gray-700 text-sm">Sabor</label>
+            <input
+              type="text"
+              value="yogurt"
+              className="w-full px-3 py-2 border rounded-lg bg-gray-100"
+              readOnly
+            />
+          </div>
+        )}
                 {producto.tipoProducto === "barquilla_bolitas" && (
                   <div className="col-span-1">
                     <label className="block text-gray-700 text-sm">Bolitas</label>

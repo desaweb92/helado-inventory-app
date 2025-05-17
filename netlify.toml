@@ -1,9 +1,0 @@
-[build]
-  base = "frontend"
-  publish = "frontend/build"  # Cambia "build" por "dist" si usas Vue
-  command = "npm install && npm run build"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200

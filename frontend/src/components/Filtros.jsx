@@ -2,20 +2,120 @@ import React, { useState } from "react";
 import { DateRangePicker } from "react-date-range";
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const Filtros = ({ 
   filtros, 
   setFiltros, 
   limpiarFiltros,
-  tipoTabla
+  tipoTabla,
+  datosFiltrados
 }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showFilters, setShowFilters] = useState(false); // Estado para mostrar/ocultar filtros en móvil
+  const [showFilters, setShowFilters] = useState(false);
   const [dateRange, setDateRange] = useState({
     startDate: new Date(),
     endDate: new Date(),
     key: 'selection'
   });
+
+  const exportarReportePDF = () => {
+    try {
+      const doc = new jsPDF();
+      const colorPrincipal = '#E91E63';
+      const colorSecundario = '#4CAF50';
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      doc.setFontSize(18);
+      doc.setTextColor(colorPrincipal);
+      doc.text(`Reporte de ${tipoTabla === 'produccion' ? 'Producción' : 'Ventas'}`, pageWidth / 2, 20, { align: 'center' });
+
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Filtros aplicados: ${obtenerTextoFiltros()}`, 14, 30);
+      doc.text(`Generado: ${new Date().toLocaleDateString()}`, 14, 35);
+      
+      const columns = tipoTabla === 'produccion' 
+        ? ["Fecha", "Sabor", "Tipo", "Precio Mayor", "Precio Detal", "Cantidad", "Máquina"]
+        : ["Fecha", "Sabores", "Tipo", "Cantidad", "Precio Total", "Método Pago", "Tipo Venta"];
+      
+      const data = datosFiltrados.map(item => {
+        return tipoTabla === 'produccion'
+          ? [
+              item.fecha,
+              item.sabor,
+              item.tipo,
+              `${item.precioMayor} ${item.monedaMayor}`,
+              `${item.precioDetal} ${item.monedaDetal}`,
+              item.cantidad,
+              item.maquina
+            ]
+          : [
+              item.fecha,
+              item.sabores,
+              item.tipoHelado,
+              item.cantidadVendida,
+              item.precioTotal,
+              item.metodoPago,
+              item.tipoVenta
+            ];
+      });
+
+      autoTable(doc, {
+        startY: 45,
+        head: [columns.map(col => ({ 
+          content: col, 
+          styles: { fillColor: colorSecundario } 
+        }))],
+        body: data,
+        headStyles: {
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        },
+        margin: { left: 14, right: 14 },
+        styles: {
+          fontSize: 9,
+          cellPadding: 3,
+          overflow: 'linebreak'
+        }
+      });
+      
+      const finalY = doc.lastAutoTable.finalY + 10;
+      doc.setDrawColor(colorPrincipal);
+      doc.setLineWidth(0.3);
+      doc.line(14, finalY, pageWidth - 14, finalY);
+      
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      doc.text("Helados App - Sistema de Gestión", pageWidth / 2, finalY + 10, { align: 'center' });
+      
+      doc.save(`reporte_${tipoTabla}_${new Date().getTime()}.pdf`);
+      
+    } catch (error) {
+      console.error("Error al generar el PDF:", error);
+      alert("Ocurrió un error al generar el reporte. Por favor intente nuevamente.");
+    }
+  };
+
+  const obtenerTextoFiltros = () => {
+    const textos = [];
+    if (filtros.sabor) textos.push(`Sabor: ${filtros.sabor}`);
+    if (filtros.tipo) textos.push(`Tipo: ${filtros.tipo}`);
+    if (filtros.maquina) textos.push(`Máquina: ${filtros.maquina}`);
+    if (filtros.medioPago) textos.push(`Método pago: ${filtros.medioPago}`);
+    if (filtros.tipoVenta) textos.push(`Tipo venta: ${filtros.tipoVenta}`);
+    if (filtros.dia || filtros.mes || filtros.anio) {
+      textos.push(`Fecha: ${filtros.dia || ''}/${filtros.mes || ''}/${filtros.anio || ''}`);
+    }
+    if (filtros.fechaInicio && filtros.fechaFin) {
+      textos.push(`Rango: ${filtros.fechaInicio.toLocaleDateString()} - ${filtros.fechaFin.toLocaleDateString()}`);
+    }
+    return textos.join(', ') || 'Ningún filtro aplicado';
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,7 +135,6 @@ const Filtros = ({
     setShowDatePicker(false);
   };
 
-  // Filtros básicos que siempre se muestran
   const basicFilters = (
     <>
       <div className="col-span-2">
@@ -48,6 +147,24 @@ const Filtros = ({
           onChange={handleChange}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
         />
+      </div>
+
+      <div className="col-span-2">
+        <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de helado</label>
+        <select
+          name="tipo"
+          value={filtros.tipo}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="">Todos los tipos</option>
+          <option value="normal">Normal</option>
+          <option value="especial">Especial</option>
+          <option value="superEspecial">Super Especial</option>
+          <option value="1lt">1 Litro</option>
+          <option value="2lt">2 Litros</option>
+          <option value="4lt">4 Litros</option>
+        </select>
       </div>
 
       <div className="col-span-2 relative">
@@ -94,7 +211,6 @@ const Filtros = ({
     </>
   );
 
-  // Filtros avanzados que se pueden ocultar en móvil
   const advancedFilters = (
     <>
       <div className="col-span-2">
@@ -115,7 +231,6 @@ const Filtros = ({
         </select>
       </div>
 
-      {/* Filtros específicos para producción */}
       {tipoTabla === 'produccion' && (
         <div className="col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Máquina</label>
@@ -132,7 +247,6 @@ const Filtros = ({
         </div>
       )}
 
-      {/* Filtros específicos para ventas */}
       {tipoTabla === 'ventas' && (
         <>
           <div className="col-span-2">
@@ -166,25 +280,6 @@ const Filtros = ({
         </>
       )}
 
-      {/* Filtros de tipo de helado */}
-      {(tipoTabla === 'produccion' || tipoTabla === 'ventas') && (
-        <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de helado</label>
-          <select
-            name="tipo"
-            value={filtros.tipo}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">Todos los tipos</option>
-            <option value="normal">Normal</option>
-            <option value="especial">Especial</option>
-            <option value="superEspecial">Super Especial</option>
-          </select>
-        </div>
-      )}
-
-      {/* Filtros por temporada */}
       <div className="col-span-2">
         <label className="block text-sm font-medium text-gray-700 mb-1">Temporada</label>
         <select
@@ -201,7 +296,6 @@ const Filtros = ({
         </select>
       </div>
 
-      {/* Filtros por día/mes/año */}
       <div className="col-span-2">
         <label className="block text-sm font-medium text-gray-700 mb-1">Fecha específica</label>
         <div className="grid grid-cols-3 gap-2">
@@ -261,7 +355,6 @@ const Filtros = ({
   return (
     <div className="mt-4 p-4 border rounded-lg bg-gray-50 shadow-sm">
       <div className="flex justify-between items-center mb-2">
-        <h2 className="text-lg font-semibold text-gray-700">Filtros Avanzados</h2>
         <div className="flex space-x-2">
           <button
             onClick={limpiarFiltros}
@@ -272,7 +365,15 @@ const Filtros = ({
             </svg>
             Limpiar
           </button>
-          {/* Botón para mostrar/ocultar filtros en móvil */}
+          <button
+            onClick={exportarReportePDF}
+            className="text-sm bg-green hover:bg-green-700 text-white px-3 py-1 rounded transition-colors flex items-center"
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Exportar reporte
+          </button>
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="md:hidden text-sm bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded transition-colors flex items-center"
@@ -288,7 +389,6 @@ const Filtros = ({
       <div className="grid grid-cols-2 gap-3">
         {basicFilters}
         
-        {/* En móvil, los filtros avanzados se muestran/ocultan */}
         <div className={`${showFilters ? 'block' : 'hidden'} md:block col-span-2`}>
           <div className="grid grid-cols-2 gap-3 mt-3">
             {advancedFilters}

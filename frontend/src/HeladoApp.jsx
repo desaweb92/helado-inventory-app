@@ -251,9 +251,9 @@ const HeladoApp = () => {
       };
     
       // Procesar ventas del día (filtradas)
-      filtradas.forEach(venta => {
-        const precioTotal = parseFloat(venta.precioTotal || 0);
-        const tipo = venta.tipoHelado.toLowerCase();
+       filtradas.forEach(venta => {
+    const precioTotal = parseFloat(venta.precioTotal || 0);
+    const tipo = (venta.tipoHelado || 'normal').toLowerCase();
         
         // Productos especiales
         if (venta.productoEspecial) {
@@ -280,7 +280,7 @@ const HeladoApp = () => {
       // Procesar ventas semanal, mensual y anual
       ventasDia.forEach(venta => {
         const precioTotal = parseFloat(venta.precioTotal || 0);
-        const tipo = venta.tipoHelado.toLowerCase();
+        const tipo = (venta.tipoHelado || 'normal').toLowerCase();
         const fechaSplit = venta.fecha.split('/');
         const mes = fechaSplit[1];
         const anio = fechaSplit[2];
@@ -358,6 +358,17 @@ const HeladoApp = () => {
         "2lt": { ...resumenProduccion["2lt"] },
         "4lt": { ...resumenProduccion["4lt"] }
       };
+
+       // Reiniciar los totales por tipo
+    Object.keys(resumen).forEach(key => {
+      if (typeof resumen[key] === 'object') {
+        Object.keys(resumen[key]).forEach(subKey => {
+          if (subKey.startsWith('total')) {
+            resumen[key][subKey] = 0;
+          }
+        });
+      }
+    });
     
       // Procesar producción del día (filtrada)
       filtradas.forEach(item => {
@@ -830,7 +841,13 @@ const HeladoApp = () => {
         </div>
       )}
 
-      <Filtros filtros={filtros} setFiltros={setFiltros} limpiarFiltros={limpiarFiltros} />
+     <Filtros 
+  filtros={filtros} 
+  setFiltros={setFiltros} 
+  limpiarFiltros={limpiarFiltros}
+  tipoTabla={activeSection === 'produccion' ? 'produccion' : 'ventas'}
+  datosFiltrados={activeSection === 'produccion' ? aplicarFiltros() : aplicarFiltrosVentas()}
+/>
     </div>
   );
 };

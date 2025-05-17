@@ -11,11 +11,11 @@ const ProduccionTable = ({ produccionDia, aplicarFiltros, handleEdit, handleDele
       case 'superEspecial':
         return { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Super Especial' };
       case '1lt':
-        return { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Tarro 1lt' };
+        return { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Envase 1lt' };
       case '2lt':
-        return { bg: 'bg-red-100', text: 'text-red-800', label: 'Tarro 2lt' };
+        return { bg: 'bg-red-100', text: 'text-red-800', label: 'Envase 2lt' };
       case '4lt':
-        return { bg: 'bg-pink-100', text: 'text-pink-800', label: 'Tarro 4lt' };
+        return { bg: 'bg-pink-100', text: 'text-pink-800', label: 'Envase 4lt' };
       default:
         return { bg: 'bg-gray-100', text: 'text-gray-800', label: tipo };
     }
