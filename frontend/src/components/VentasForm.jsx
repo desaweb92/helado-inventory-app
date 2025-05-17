@@ -128,9 +128,9 @@ const VentasForm = ({
         if (item.tipoProducto === "barquilla_bolitas") tipo = `Barquilla bolita (${item.bolitas === "doble" ? "Doble" : "Simple"})`;
         else if (item.tipoProducto === "barquilla_soft") tipo = "Barquilla soft";
         else if (item.tipoProducto === "barquilla_yogurt") tipo = "Barquilla yogurt";
-        else if (item.tipoProducto === "1lt") tipo = "Tarro 1lt";
-        else if (item.tipoProducto === "2lt") tipo = "Tarro 2lt";
-        else if (item.tipoProducto === "4lt") tipo = "Tarro 4lt";
+        else if (item.tipoProducto === "1lt") tipo = "Envase 1lt";
+        else if (item.tipoProducto === "2lt") tipo = "Envase 2lt";
+        else if (item.tipoProducto === "4lt") tipo = "Envase 4lt";
         else if (item.tipoProducto === "sundae") tipo = "Sundae";
         
         items.push([
@@ -497,9 +497,9 @@ doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, startY + 10 + espacioExtra, { align
             if (producto.tipoProducto === "barquilla_bolitas") tipo = `Barquilla bolita (${producto.bolitas === "doble" ? "Doble" : "Simple"})`;
             else if (producto.tipoProducto === "barquilla_soft") tipo = "Barquilla soft";
             else if (producto.tipoProducto === "barquilla_yogurt") tipo = "Barquilla yogurt";
-            else if (producto.tipoProducto === "1lt") tipo = "Tarro 1lt";
-            else if (producto.tipoProducto === "2lt") tipo = "Tarro 2lt";
-            else if (producto.tipoProducto === "4lt") tipo = "Tarro 4lt";
+            else if (producto.tipoProducto === "1lt") tipo = "Envase 1lt";
+            else if (producto.tipoProducto === "2lt") tipo = "Envase 2lt";
+            else if (producto.tipoProducto === "4lt") tipo = "Envase 4lt";
             else if (producto.tipoProducto === "sundae") tipo = "Sundae";
             return `${producto.sabor} (${tipo})`;
           })
@@ -789,9 +789,9 @@ doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, startY + 10 + espacioExtra, { align
                     <option value="barquilla_bolitas">Barquilla bolita</option>
                     <option value="barquilla_soft">Barquilla soft</option>
                     <option value="barquilla_yogurt">Barquilla yogurt</option>
-                    <option value="1lt">Tarro 1lt</option>
-                    <option value="2lt">Tarro 2lt</option>
-                    <option value="4lt">Tarro 4lt</option>
+                    <option value="1lt">Envase 1lt</option>
+                    <option value="2lt">Envase 2lt</option>
+                    <option value="4lt">Envase 4lt</option>
                     <option value="sundae">Sundae</option>
                   </select>
                 </div>

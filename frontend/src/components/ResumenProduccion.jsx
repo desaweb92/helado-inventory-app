@@ -107,9 +107,9 @@ const ResumenProduccion = ({ resumen }) => {
               <td className="py-2 px-4 border text-center">{formatNumber(resumen.superEspecial?.totalMaquinaMantecadoraAnio)}</td>
             </tr>
 
-            {/* Fila para Helados de Tarro 1lt */}
+            {/* Fila para Helados de Envase 1lt */}
             <tr>
-              <td className="py-2 px-4 border">Tarro 1lt</td>
+              <td className="py-2 px-4 border">Envase 1lt</td>
               <td className="py-2 px-4 border text-center">{formatNumber(resumen["1lt"]?.totalProduccionDia)}</td>
               <td className="py-2 px-4 border text-center">{formatNumber(resumen["1lt"]?.totalProduccionSemana)}</td>
               <td className="py-2 px-4 border text-center">{formatNumber(resumen["1lt"]?.totalProduccionMes)}</td>
@@ -126,9 +126,9 @@ const ResumenProduccion = ({ resumen }) => {
               <td className="py-2 px-4 border text-center">{formatNumber(resumen["1lt"]?.totalMaquinaMantecadoraAnio)}</td>
             </tr>
 
-            {/* Fila para Helados de Tarro 2lt */}
+            {/* Fila para Helados de Envase 2lt */}
             <tr>
-              <td className="py-2 px-4 border">Tarro 2lt</td>
+              <td className="py-2 px-4 border">Envase 2lt</td>
               <td className="py-2 px-4 border text-center">{formatNumber(resumen["2lt"]?.totalProduccionDia)}</td>
               <td className="py-2 px-4 border text-center">{formatNumber(resumen["2lt"]?.totalProduccionSemana)}</td>
               <td className="py-2 px-4 border text-center">{formatNumber(resumen["2lt"]?.totalProduccionMes)}</td>
@@ -145,9 +145,9 @@ const ResumenProduccion = ({ resumen }) => {
               <td className="py-2 px-4 border text-center">{formatNumber(resumen["2lt"]?.totalMaquinaMantecadoraAnio)}</td>
             </tr>
 
-            {/* Fila para Helados de Tarro 4lt */}
+            {/* Fila para Helados de Envase 4lt */}
             <tr>
-              <td className="py-2 px-4 border">Tarro 4lt</td>
+              <td className="py-2 px-4 border">Envase 4lt</td>
               <td className="py-2 px-4 border text-center">{formatNumber(resumen["4lt"]?.totalProduccionDia)}</td>
               <td className="py-2 px-4 border text-center">{formatNumber(resumen["4lt"]?.totalProduccionSemana)}</td>
               <td className="py-2 px-4 border text-center">{formatNumber(resumen["4lt"]?.totalProduccionMes)}</td>

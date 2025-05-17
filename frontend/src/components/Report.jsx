@@ -28,9 +28,9 @@ const Report = ({ inventario }) => {
       processInventory(inventario.normal, 'Normal');
       processInventory(inventario.especial, 'Especial');
       processInventory(inventario.superEspecial, 'Super Especial');
-      processInventory(inventario['1lt'], 'Tarro 1lt');
-      processInventory(inventario['2lt'], 'Tarro 2lt');
-      processInventory(inventario['4lt'], 'Tarro 4lt');
+      processInventory(inventario['1lt'], 'Envase 1lt');
+      processInventory(inventario['2lt'], 'Envase 2lt');
+      processInventory(inventario['4lt'], 'Envase 4lt');
 
       setReportData(processedData);
     }
@@ -112,11 +112,11 @@ const Report = ({ inventario }) => {
         return 'bg-purple-100 text-purple-800';
       case 'Super Especial':
         return 'bg-yellow-100 text-yellow-800';
-      case 'Tarro 1lt':
+      case 'Envase 1lt':
         return 'bg-orange-100 text-orange-800';
-      case 'Tarro 2lt':
+      case 'Envase 2lt':
         return 'bg-red-100 text-red-800';
-      case 'Tarro 4lt':
+      case 'Envase 4lt':
         return 'bg-pink-100 text-pink-800';
       default:
         return 'bg-gray-100 text-gray-800';

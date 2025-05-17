@@ -31,11 +31,11 @@ const Inventario = ({ inventarioActual, totalInventario }) => {
       case 'superEspecial':
         return 'Super Especial';
       case '1lt':
-        return 'Tarro 1lt';
+        return 'Envase 1lt';
       case '2lt':
-        return 'Tarro 2lt';
+        return 'Envase 2lt';
       case '4lt':
-        return 'Tarro 4lt';
+        return 'Envase 4lt';
       default:
         return tipo;
     }
@@ -103,7 +103,7 @@ const Inventario = ({ inventarioActual, totalInventario }) => {
               );
             })}
 
-            {/* Helados de Tarro 1lt */}
+            {/* Helados de Envase 1lt */}
             {Object.entries(inventarioActual['1lt'] || {}).map(([clave, valor]) => {
               const [sabor, tipo] = clave.split(' - ');
               return (
@@ -119,7 +119,7 @@ const Inventario = ({ inventarioActual, totalInventario }) => {
               );
             })}
 
-            {/* Helados de Tarro 2lt */}
+            {/* Helados de Envase 2lt */}
             {Object.entries(inventarioActual['2lt'] || {}).map(([clave, valor]) => {
               const [sabor, tipo] = clave.split(' - ');
               return (
@@ -135,7 +135,7 @@ const Inventario = ({ inventarioActual, totalInventario }) => {
               );
             })}
 
-            {/* Helados de Tarro 4lt */}
+            {/* Helados de Envase 4lt */}
             {Object.entries(inventarioActual['4lt'] || {}).map(([clave, valor]) => {
               const [sabor, tipo] = clave.split(' - ');
               return (

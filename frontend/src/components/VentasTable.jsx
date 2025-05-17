@@ -34,9 +34,9 @@ const VentasTable = ({ ventasDia }) => {
       case 'barquilla_bolitas': return 'Barquilla Bolitas';
       case 'barquilla_soft': return 'Barquilla Soft';
       case 'barquilla_yogurt': return 'Barquilla Yogurt';
-      case '1lt': return 'Tarro 1lt';
-      case '2lt': return 'Tarro 2lt';
-      case '4lt': return 'Tarro 4lt';
+      case '1lt': return 'Envase 1lt';
+      case '2lt': return 'Envase 2lt';
+      case '4lt': return 'Envase 4lt';
       case 'sundae': return 'Sundae';
       default: return tipo;
     }
