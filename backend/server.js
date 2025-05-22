@@ -3,7 +3,7 @@ const axios = require('axios');
 const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3001;
-
+const { agregarHelado, obtenerHelados } = require('./src/controllers/JS_fieldoController')
 
 app.use(cors({
   origin: 'http://localhost:5173',
@@ -105,7 +105,9 @@ app.post('/api/actualizar', async (req, res) => {
   });
 });
 
-
+// Helados
+app.post('/api/helados', agregarHelado)
+app.get('/api/helados', obtenerHelados)
 // Iniciar servidor
 const startServer = async () => {
   try {

@@ -327,6 +327,7 @@ doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, startY + 10 + espacioExtra, { align
   
   setProductosEspeciales(newProductos);
   };
+  
 
   const handleProductoPrecioMayorChange = (e, index) => {
     const newProductos = [...productosEspeciales];
