@@ -1,17 +1,34 @@
-const { createClient } = require('@supabase/supabase-js')
-const path = require('path')
-require('dotenv').config({ path: path.join(__dirname, '../../env/.env') })
+const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config();
 
-const supabaseUrl = process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_KEY
-
-console.log('URL:', supabaseUrl) // Para depuración
-console.log('KEY:', supabaseKey ? '***' : 'No encontrada') // No mostrar clave completa
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error('❌ Faltan SUPABASE_URL o SUPABASE_KEY en .env')
+  throw new Error(
+    'Supabase URL y Key deben estar definidas en las variables de entorno'
+  );
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey)
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: false // Opcional, dependiendo de tus necesidades
+  }
+});
 
-module.exports = supabase
+// Verificar conexión al iniciar
+(async () => {
+  try {
+    const { data, error } = await supabase
+      .from('produccion')
+      .select('*')
+      .limit(1);
+    
+    if (error) throw error;
+    console.log('✅ Conexión a Supabase verificada');
+  } catch (error) {
+    console.error('❌ Error conectando a Supabase:', error.message);
+  }
+})();
+
+module.exports = supabase;

@@ -1,14 +1,62 @@
-import React from "react";
+import React, { useState } from "react";
+import { createHelado } from "../services/api";
 
-const ProduccionForm = ({ formData, setFormData, handleSubmitProduccion, editIndex }) => {
+const ProduccionForm = ({ onSaveSuccess }) => {
+  const [formData, setFormData] = useState({
+    sabor: "",
+    tipo: "normal",
+    precioMayor: "",
+    precioDetal: "",
+    monedaMayor: "USD",
+    monedaDetal: "Bs",
+    cantidad: "",
+    maquina: "soft"
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const response = await createHelado(formData);
+      console.log("Respuesta del servidor:", response);
+      
+      // Resetear formulario después de guardar
+      setFormData({
+        sabor: "",
+        tipo: "normal",
+        precioMayor: "",
+        precioDetal: "",
+        monedaMayor: "USD",
+        monedaDetal: "Bs",
+        cantidad: "",
+        maquina: "soft"
+      });
+
+      // Notificar al componente padre
+      if (onSaveSuccess) onSaveSuccess();
+      
+    } catch (err) {
+      console.error("Error al guardar:", err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
+    
     <div>
       <h1 className="text-2xl font-bold mb-4">Registro de Helados</h1>
-      <form onSubmit={handleSubmitProduccion} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-gray-700">Sabor:</label>
           <input
@@ -110,13 +158,20 @@ const ProduccionForm = ({ formData, setFormData, handleSubmitProduccion, editInd
             <option value="mantecadora">Mantecadora</option>
           </select>
         </div>
+
+          {error && (
+        <div className="text-red-500 mb-4">
+          Error: {error}
+        </div>
+      )}
         <div className="md:col-span-2 flex flex-col items-center justify-center">
-          <button
-            type="submit"
-            className="md:w-[20%] w-full bg-green text-white px-4 py-2 rounded-lg hover:bg-fucshia"
-          >
-            {editIndex !== null ? "Actualizar producción" : "Guardar producción"}
-          </button>
+          <button 
+        type="submit" 
+        disabled={isLoading}
+        className="bg-green text-white px-4 py-2 rounded hover:bg-green"
+      >
+        {isLoading ? "Guardando..." : "Guardar Producción"}
+      </button>
         </div>
       </form>
     </div>
