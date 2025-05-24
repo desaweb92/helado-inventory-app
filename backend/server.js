@@ -1,3 +1,15 @@
+require('dotenv').config({ path: '../backend/env/.env' }); // Carga específica del .env
+
+// Verificación explícita de variables
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) {
+  console.error('❌ Error: Variables de Supabase no configuradas');
+  console.log('Ubicación actual del .env:', require('path').resolve(__dirname, 'env/.env'));
+  console.log('Contenido requerido en .env:');
+  console.log('SUPABASE_URL=https://tu_proyecto.supabase.co');
+  console.log('SUPABASE_KEY=tu_clave_anon_publica');
+  process.exit(1);
+}
+
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
@@ -5,7 +17,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const { agregarHelado, obtenerHelados } = require('./src/controllers/JS_fieldoController');
 
-// Configuración mejorada de CORS
+// Configuración CORS (original)
 app.use(cors({
   origin: 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -13,9 +25,9 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Configuración BCV
+// Configuración BCV (original sin cambios)
 const CONFIG = {
-  updateInterval: 60 * 60 * 1000, // 1 hora
+  updateInterval: 60 * 60 * 1000,
   apiSources: [
     {
       name: 'BCV Oficial',
@@ -25,7 +37,6 @@ const CONFIG = {
   ]
 };
 
-// Datos de tasas
 let tasaActual = {
   valor: null,
   fecha: null,
@@ -34,7 +45,6 @@ let tasaActual = {
   estado: 'inicializando'
 };
 
-// Función para obtener tasa BCV
 async function obtenerTasaDeFuentes(fuentes) {
   const source = fuentes[0];
   try {
@@ -55,7 +65,6 @@ async function obtenerTasaDeFuentes(fuentes) {
   return null;
 }
 
-// Actualización de tasa BCV
 const actualizarTasaBCV = async () => {
   try {
     const tasaResultado = await obtenerTasaDeFuentes(CONFIG.apiSources);
@@ -76,7 +85,7 @@ const actualizarTasaBCV = async () => {
   }
 };
 
-// Endpoints de Tasas BCV
+// Endpoints (originales)
 app.get('/api/tasa', (req, res) => {
   if (tasaActual.valor === null) {
     res.status(503).json({
@@ -116,7 +125,7 @@ app.get('/api/helados', async (req, res) => {
   }
 });
 
-// Iniciar servidor con manejo mejorado de errores
+// Inicio del servidor (original)
 const startServer = async () => {
   try {
     await actualizarTasaBCV();
@@ -124,11 +133,6 @@ const startServer = async () => {
 
     app.listen(PORT, () => {
       console.log(`\n🚀 Servidor corriendo en http://localhost:${PORT}`);
-      console.log(`- Endpoints disponibles:`);
-      console.log(`  • GET /api/tasa`);
-      console.log(`  • POST /api/actualizar`);
-      console.log(`  • POST /api/helados`);
-      console.log(`  • GET /api/helados`);
       console.log(`- Tasa BCV actual: ${tasaActual.valor || 'No disponible'} Bs/USD\n`);
     });
   } catch (error) {
@@ -137,7 +141,6 @@ const startServer = async () => {
   }
 };
 
-// Manejo de errores no capturados
 process.on('unhandledRejection', (err) => {
   console.error('Error no capturado:', err);
 });
