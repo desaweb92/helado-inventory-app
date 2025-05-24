@@ -4,6 +4,7 @@ exports.agregarHelado = async (req, res) => {
   try {
     const { sabor, tipo, precioMayor, precioDetal, cantidad, maquina, monedaMayor, monedaDetal } = req.body;
 
+    // Validación mejorada
     if (!sabor || !cantidad || !maquina) {
       return res.status(400).json({
         success: false,
