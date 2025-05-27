@@ -20,37 +20,49 @@ const ProduccionForm = ({ onSaveSuccess }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setIsLoading(true);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError(null);
+  setIsLoading(true);
 
-    try {
-      const response = await createHelado(formData);
-      console.log("Respuesta del servidor:", response);
-      
-      // Resetear formulario después de guardar
-      setFormData({
-        sabor: "",
-        tipo: "normal",
-        precioMayor: "",
-        precioDetal: "",
-        monedaMayor: "USD",
-        monedaDetal: "Bs",
-        cantidad: "",
-        maquina: "soft"
-      });
-
-      // Notificar al componente padre
-      if (onSaveSuccess) onSaveSuccess();
-      
-    } catch (err) {
-      console.error("Error al guardar:", err);
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+  try {
+    // Preparar datos para enviar
+      const datosParaEnviar = {
+    ...formData,
+    precioMayor: formData.precioMayor !== '' ? Number(formData.precioMayor) : null,
+    precioDetal: formData.precioDetal !== '' ? Number(formData.precioDetal) : null,
+    cantidad: Number(formData.cantidad)
   };
+
+  console.log('Datos a enviar al backend:', datosParaEnviar);
+
+    console.log('Datos a enviar:', datosParaEnviar);
+
+    const response = await createHelado(datosParaEnviar);
+    console.log("Respuesta del servidor:", response);
+
+    // Resetear formulario
+    setFormData({
+      sabor: "",
+      tipo: "normal",
+      precioMayor: "",
+      precioDetal: "",
+      monedaMayor: "USD",
+      monedaDetal: "Bs",
+      cantidad: "",
+      maquina: "soft"
+    });
+
+    if (onSaveSuccess) onSaveSuccess();
+
+  } catch (err) {
+    console.error("Error al guardar:", err);
+    setError(err.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     

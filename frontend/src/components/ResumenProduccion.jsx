@@ -1,14 +1,83 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { API_URL } from "../services/api";
 
-const ResumenProduccion = ({ resumen }) => {
-  // Función para formatear números con separadores de miles
+const ResumenProduccion = () => {
+  const [resumen, setResumen] = useState({
+    // Estructura inicial que espera tu tabla
+    totalProduccionDia: 0,
+    totalProduccionSemana: 0,
+    totalProduccionMes: 0,
+    totalProduccionAnio: 0,
+    totalPrecioMayor: 0,
+    totalPrecioDetal: 0,
+    totalMaquinaSoftDia: 0,
+    totalMaquinaSoftSemana: 0,
+    totalMaquinaSoftMes: 0,
+    totalMaquinaSoftAnio: 0,
+    totalMaquinaMantecadoraDia: 0,
+    totalMaquinaMantecadoraSemana: 0,
+    totalMaquinaMantecadoraMes: 0,
+    totalMaquinaMantecadoraAnio: 0,
+    normal: {},
+    especial: {},
+    superEspecial: {},
+    "1lt": {},
+    "2lt": {},
+    "4lt": {}
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const formatNumber = (num) => {
     return num?.toLocaleString() || '0';
   };
 
+  useEffect(() => {
+    const fetchResumen = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_URL}/produccion/resumen`);
+        if (!response.ok) throw new Error('Error al obtener datos');
+        const data = await response.json();
+        
+        // Procesamiento adicional para asegurar que todos los campos existan
+        const processedData = {
+          ...resumen, // Valores iniciales
+          ...data,    // Datos del backend
+          normal: { ...resumen.normal, ...(data.normal || {}) },
+          especial: { ...resumen.especial, ...(data.especial || {}) },
+          superEspecial: { ...resumen.superEspecial, ...(data.superEspecial || {}) },
+          "1lt": { ...resumen["1lt"], ...(data["1lt"] || {}) },
+          "2lt": { ...resumen["2lt"], ...(data["2lt"] || {}) },
+          "4lt": { ...resumen["4lt"], ...(data["4lt"] || {}) }
+        };
+        
+        setResumen(processedData);
+      } catch (err) {
+        setError(err.message);
+        console.error("Error fetching production data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResumen();
+  }, []);
+
+  if (loading) return <div>Cargando resumen de producción...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+
   return (
     <div className="mt-4">
       <h2 className="text-xl font-bold mb-2">Resumen de Producción</h2>
+           {/* Tarjeta informativa */}
+      <div className="mb-4 p-3 bg-blue-50 rounded">
+        <p className="text-sm text-blue-800">
+          <strong>Fecha actual:</strong> {new Date().toLocaleDateString()} | 
+          <strong> Última actualización:</strong> {new Date().toLocaleTimeString()}
+        </p>
+      </div>
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white border">
           <thead>
@@ -32,7 +101,7 @@ const ResumenProduccion = ({ resumen }) => {
           </thead>
           <tbody>
             {/* Fila para Total General */}
-            <tr className="bg-gray-50">
+       <tr className="bg-gray-50">
               <td className="py-2 px-4 border font-semibold">Total General</td>
               <td className="py-2 px-4 border text-center">{formatNumber(resumen.totalProduccionDia)}</td>
               <td className="py-2 px-4 border text-center">{formatNumber(resumen.totalProduccionSemana)}</td>
@@ -50,7 +119,7 @@ const ResumenProduccion = ({ resumen }) => {
               <td className="py-2 px-4 border text-center">{formatNumber(resumen.totalMaquinaMantecadoraAnio)}</td>
             </tr>
 
-            {/* Fila para Normales */}
+                     {/* Fila para Normales */}
             <tr>
               <td className="py-2 px-4 border">Normales</td>
               <td className="py-2 px-4 border text-center">{formatNumber(resumen.normal?.totalProduccionDia)}</td>

@@ -4,6 +4,7 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3001;
 const { agregarHelado, obtenerHelados } = require('./src/controllers/JS_fieldoController');
+const produccionController = require('./src/controllers/JS_produccionController');
 
 // Configuración mejorada de CORS
 app.use(cors({
@@ -113,6 +114,39 @@ app.get('/api/helados', async (req, res) => {
   } catch (error) {
     console.error('Error obteniendo helados:', error);
     return res.status(500).json({ error: 'Error al obtener helados' });
+  }
+});
+
+// POST /api/produccion (nuevo endpoint)
+app.post('/api/produccion', async (req, res) => {
+  try {
+    const resultado = await produccionController.agregarHelado(req, res);
+    return resultado;
+  } catch (error) {
+    console.error('Error en endpoint /api/produccion:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// GET /api/produccion (nuevo endpoint)
+app.get('/api/produccion', async (req, res) => {
+  try {
+    const resultado = await produccionController.obtenerHelados(req, res);
+    return resultado;
+  } catch (error) {
+    console.error('Error obteniendo producción:', error);
+    return res.status(500).json({ error: 'Error al obtener producción' });
+  }
+});
+
+app.get('/api/produccion/resumen', async (req, res) => {
+  try {
+    const { getResumenProduccion } = require('./src/controllers/JS_produccionController');
+    const resumen = await getResumenProduccion();
+    res.json(resumen);
+  } catch (error) {
+    console.error('Error en /api/produccion/resumen:', error);
+    res.status(500).json({ error: 'Error al obtener resumen de producción' });
   }
 });
 

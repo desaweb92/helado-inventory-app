@@ -507,36 +507,49 @@ const HeladoApp = () => {
   );
 
   // Manejar submit de producción
-  const handleSubmitProduccion = (e) => {
-    e.preventDefault();
+const handleSubmitProduccion = (e) => {
+  e.preventDefault();
 
-    const nuevaProduccion = {
-      ...formData,
-      fecha: new Date().toLocaleDateString(),
-      monedaMayor: formData.monedaMayor || "USD",
-      monedaDetal: formData.monedaDetal || "Bs"
-    };
+  if (!formData.precioMayor || !formData.precioDetal) {
+    alert('Los campos de precio no pueden estar vacíos');
+    return;
+  }
 
-    if (editIndex !== null) {
-      const actualizada = [...produccionDia];
-      actualizada[editIndex] = nuevaProduccion;
-      setProduccionDia(actualizada);
-      setEditIndex(null);
-    } else {
-      setProduccionDia([...produccionDia, nuevaProduccion]);
-    }
+  if (isNaN(parseFloat(formData.precioMayor)) || isNaN(parseFloat(formData.precioDetal))) {
+    alert('Los campos de precio deben ser numéricos');
+    return;
+  }
 
-    setFormData({
-      sabor: "",
-      tipo: "normal",
-      precioMayor: "",
-      precioDetal: "",
-      monedaMayor: "USD",
-      monedaDetal: "Bs",
-      cantidad: "",
-      maquina: "soft",
-    });
+  const nuevaProduccion = {
+    ...formData,
+    fecha: new Date().toLocaleDateString(),
+    monedaMayor: formData.monedaMayor || "USD",
+    monedaDetal: formData.monedaDetal || "Bs"
   };
+
+  console.log('Datos de producción:', nuevaProduccion); // Agrega este log para depurar
+
+  if (editIndex !== null) {
+    const actualizada = [...produccionDia];
+    actualizada[editIndex] = nuevaProduccion;
+    setProduccionDia(actualizada);
+    setEditIndex(null);
+  } else {
+    setProduccionDia([...produccionDia, nuevaProduccion]);
+  }
+
+  setFormData({
+    sabor: "",
+    tipo: "normal",
+    precioMayor: "",
+    precioDetal: "",
+    monedaMayor: "USD",
+    monedaDetal: "Bs",
+    cantidad: "",
+    maquina: "soft",
+  });
+};
+
 
   // Manejar submit de ventas
   const handleSubmitVenta = (nuevasVentas) => {
