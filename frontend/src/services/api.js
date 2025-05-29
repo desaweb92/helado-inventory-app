@@ -3,21 +3,20 @@ export const API_URL = 'http://localhost:3001/api';
 export const createHelado = async (heladoData) => {
   try {
     // Validación básica
-    if (!heladoData.sabor || !heladoData.tipo || !heladoData.cantidad) {
+    if (!heladoData.sabor || !heladoData.tipo || !heladoData.cantidad || !heladoData.precio_mayor || !heladoData.precio_detal ) {
       throw new Error('Faltan campos obligatorios');
     }
 
     // Convertir valores numéricos
-    const precioMayor = heladoData.precioMayor ? 
-      parseFloat(heladoData.precioMayor) : null;
-    const precioDetal = heladoData.precioDetal ? 
-      parseFloat(heladoData.precioDetal) : null;
+    const precio_mayor = parseInt(heladoData.precio_mayor);
+    const precio_detal = parseInt(heladoData.precio_detal);
     const cantidad = parseInt(heladoData.cantidad);
 
     // Validación adicional
-    if (precioMayor !== null && isNaN(precioMayor)) {
-      throw new Error('Precio al por mayor debe ser un número válido');
+   if (isNaN(precio_mayor) || isNaN(precio_detal)) {
+      throw new Error('Los precios deben ser números válidos');
     }
+
 
     const response = await fetch(`${API_URL}/produccion`, {
       method: 'POST',
@@ -27,8 +26,8 @@ export const createHelado = async (heladoData) => {
       body: JSON.stringify({
         sabor: heladoData.sabor,
         tipo: heladoData.tipo === 'superEspecial' ? 'super_especial' : heladoData.tipo,
-        precio_mayor: precioMayor,
-        precio_detal: precioDetal,
+        precio_mayor: precio_mayor,
+        precio_detal: precio_detal,
         moneda_mayor: heladoData.monedaMayor,
         moneda_detal: heladoData.monedaDetal,
         cantidad: cantidad,

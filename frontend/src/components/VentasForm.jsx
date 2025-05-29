@@ -266,8 +266,8 @@ doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, startY + 10 + espacioExtra, { align
           );
           if (produccion) {
             const precioUnitario = newData.tipoVenta === "mayor" 
-              ? produccion.precioMayor 
-              : produccion.precioDetal;
+              ? produccion.precio_mayor 
+              : produccion.precio_detal;
             return {
               ...sabor,
               precioUnitario,
@@ -280,8 +280,8 @@ doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, startY + 10 + espacioExtra, { align
         
         const newProductos = productosEspeciales.map(producto => ({
           ...producto,
-          precioUnitario: newData.tipoVenta === "mayor" ? producto.precioMayor : producto.precioDetal,
-          precioTotalSabor: (newData.tipoVenta === "mayor" ? producto.precioMayor : producto.precioDetal) * producto.cantidad
+          precioUnitario: newData.tipoVenta === "mayor" ? producto.precio_mayor : producto.precio_detal,
+          precioTotalSabor: (newData.tipoVenta === "mayor" ? producto.precio_mayor : producto.precio_detal) * producto.cantidad
         }));
         setProductosEspeciales(newProductos);
       }
@@ -312,8 +312,8 @@ doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, startY + 10 + espacioExtra, { align
   const handleProductoEspecialChange = (e, index) => {
     const newProductos = [...productosEspeciales];
     newProductos[index].tipoProducto = e.target.value;
-    newProductos[index].precioMayor = "";
-    newProductos[index].precioDetal = "";
+    newProductos[index].precio_mayor = "";
+    newProductos[index].precio_detal = "";
     newProductos[index].precioUnitario = "";
     newProductos[index].precioTotalSabor = 0;
     newProductos[index].bolitas = "simple"; // Valor por defecto
@@ -331,7 +331,7 @@ doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, startY + 10 + espacioExtra, { align
 
   const handleProductoPrecioMayorChange = (e, index) => {
     const newProductos = [...productosEspeciales];
-    newProductos[index].precioMayor = e.target.value;
+    newProductos[index].precio_mayor = e.target.value;
     
     if (ventaData.tipoVenta === "mayor") {
       newProductos[index].precioUnitario = parseFloat(e.target.value) || 0;
@@ -343,7 +343,7 @@ doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, startY + 10 + espacioExtra, { align
 
   const handleProductoPrecioDetalChange = (e, index) => {
     const newProductos = [...productosEspeciales];
-    newProductos[index].precioDetal = e.target.value;
+    newProductos[index].precio_detal = e.target.value;
     
     if (ventaData.tipoVenta === "detal") {
       newProductos[index].precioUnitario = parseFloat(e.target.value) || 0;
@@ -392,8 +392,8 @@ doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, startY + 10 + espacioExtra, { align
         tipoProducto: "barquilla_bolitas",
         sabor: "",
         cantidad: 0,
-        precioMayor: "",
-        precioDetal: "",
+        precio_mayor: "",
+        precio_detal: "",
         precioUnitario: "",
         precioTotalSabor: 0,
         tipoHelado: "especial",
@@ -430,8 +430,8 @@ doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, startY + 10 + espacioExtra, { align
         );
         if (produccion) {
           const precioUnitario = ventaData.tipoVenta === "mayor"
-            ? parseFloat(produccion.precioMayor)
-            : parseFloat(produccion.precioDetal);
+            ? parseFloat(produccion.precio_mayor)
+            : parseFloat(produccion.precio_detal);
           
           const precioTotalSabor = precioUnitario * sabor.cantidad;
           
@@ -859,7 +859,7 @@ doc.text(`Bs ${subtotalBs.toFixed(2)}`, 180, startY + 10 + espacioExtra, { align
                   </label>
                   <input
                     type="number"
-                    value={ventaData.tipoVenta === "mayor" ? producto.precioMayor : producto.precioDetal}
+                    value={ventaData.tipoVenta === "mayor" ? producto.precio_mayor : producto.precio_detal}
                     onChange={ventaData.tipoVenta === "mayor" 
                       ? (e) => handleProductoPrecioMayorChange(e, index)
                       : (e) => handleProductoPrecioDetalChange(e, index)}

@@ -5,8 +5,8 @@ const ProduccionForm = ({ onSaveSuccess }) => {
   const [formData, setFormData] = useState({
     sabor: "",
     tipo: "normal",
-    precioMayor: "",
-    precioDetal: "",
+    precio_mayor: "",
+    precio_detal: "",
     monedaMayor: "USD",
     monedaDetal: "Bs",
     cantidad: "",
@@ -29,8 +29,8 @@ const handleSubmit = async (e) => {
     // Preparar datos para enviar
       const datosParaEnviar = {
     ...formData,
-    precioMayor: formData.precioMayor !== '' ? Number(formData.precioMayor) : null,
-    precioDetal: formData.precioDetal !== '' ? Number(formData.precioDetal) : null,
+    precio_mayor: Number(formData.precio_mayor),
+    precio_detal: Number(formData.precio_detal),
     cantidad: Number(formData.cantidad)
   };
 
@@ -45,8 +45,8 @@ const handleSubmit = async (e) => {
     setFormData({
       sabor: "",
       tipo: "normal",
-      precioMayor: "",
-      precioDetal: "",
+      precio_mayor: "",
+      precio_detal: "",
       monedaMayor: "USD",
       monedaDetal: "Bs",
       cantidad: "",
@@ -102,8 +102,8 @@ const handleSubmit = async (e) => {
           <div className="flex">
             <input
               type="number"
-              name="precioMayor"
-              value={formData.precioMayor}
+              name="precio_mayor"
+              value={formData.precio_mayor}
               onChange={handleChange}
               className="w-full p-2 border rounded"
               step="0.01"
@@ -126,8 +126,8 @@ const handleSubmit = async (e) => {
           <div className="flex">
             <input
               type="number"
-              name="precioDetal"
-              value={formData.precioDetal}
+              name="precio_detal"
+              value={formData.precio_detal}
               onChange={handleChange}
               className="w-full p-2 border rounded"
               step="0.01"

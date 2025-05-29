@@ -17,8 +17,8 @@ const HeladoApp = () => {
   const [formData, setFormData] = useState({
     sabor: "",
     tipo: "normal", // Ahora incluye "1lt", "2lt", "4lt"
-    precioMayor: "",
-    precioDetal: "",
+    precio_mayor: "",
+    precio_detal: "",
     monedaMayor: "USD",
     monedaDetal: "Bs",
     cantidad: "",
@@ -374,11 +374,11 @@ const HeladoApp = () => {
       filtradas.forEach(item => {
         const cantidad = parseInt(item.cantidad || 0);
         const tipo = item.tipo.toLowerCase();
-        const precioMayor = parseFloat(item.precioMayor || 0);
-        const precioDetal = parseFloat(item.precioDetal || 0);
+        const precio_mayor = parseFloat(item.precio_mayor || 0);
+        const precio_detal = parseFloat(item.precio_detal || 0);
 
-        resumen.totalPrecioMayor += precioMayor;
-        resumen.totalPrecioDetal += precioDetal;
+        resumen.totalPrecioMayor += precio_mayor;
+        resumen.totalPrecioDetal += precio_detal;
         
         // Totales generales
         resumen.totalProduccionDia += cantidad;
@@ -391,8 +391,8 @@ const HeladoApp = () => {
         // Por tipo
         if (resumen[tipo]) {
           resumen[tipo].totalProduccionDia += cantidad;
-          resumen[tipo].totalPrecioMayor += precioMayor;
-          resumen[tipo].totalPrecioDetal += precioDetal;
+          resumen[tipo].totalPrecioMayor += precio_mayor;
+          resumen[tipo].totalPrecioDetal += precio_detal;
           
           if (item.maquina === 'soft') {
             resumen[tipo].totalMaquinaSoftDia += cantidad;
@@ -510,12 +510,12 @@ const HeladoApp = () => {
 const handleSubmitProduccion = (e) => {
   e.preventDefault();
 
-  if (!formData.precioMayor || !formData.precioDetal) {
+  if (!formData.precio_mayor || !formData.precio_detal) {
     alert('Los campos de precio no pueden estar vacíos');
     return;
   }
 
-  if (isNaN(parseFloat(formData.precioMayor)) || isNaN(parseFloat(formData.precioDetal))) {
+  if (isNaN(parseFloat(formData.precio_mayor)) || isNaN(parseFloat(formData.precio_detal))) {
     alert('Los campos de precio deben ser numéricos');
     return;
   }
@@ -541,8 +541,8 @@ const handleSubmitProduccion = (e) => {
   setFormData({
     sabor: "",
     tipo: "normal",
-    precioMayor: "",
-    precioDetal: "",
+    precio_mayor: "",
+    precio_detal: "",
     monedaMayor: "USD",
     monedaDetal: "Bs",
     cantidad: "",
@@ -599,8 +599,8 @@ const handleSubmitProduccion = (e) => {
   const exportToExcel = () => {
     const datosConMoneda = produccionDia.map(item => ({
       ...item,
-      precioMayor: `${item.precioMayor} ${item.monedaMayor}`,
-      precioDetal: `${item.precioDetal} ${item.monedaDetal}`
+      precio_mayor: `${item.precio_mayor} ${item.monedaMayor}`,
+      precio_detal: `${item.precio_detal} ${item.monedaDetal}`
     }));
     const ws = XLSX.utils.json_to_sheet(produccionDia);
     const wb = { Sheets: { Producción: ws }, SheetNames: ["Producción"] };
@@ -645,8 +645,8 @@ const handleSubmitProduccion = (e) => {
           item.fecha,
           item.sabor,
           item.tipo,
-          `${item.precioMayor} ${item.monedaMayor}`,
-          `${item.precioDetal} ${item.monedaDetal}`,
+          `${item.precio_mayor} ${item.monedaMayor}`,
+          `${item.precio_detal} ${item.monedaDetal}`,
           `${item.cantidad}`,
           item.maquina
         ]),

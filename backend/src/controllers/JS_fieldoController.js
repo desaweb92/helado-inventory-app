@@ -2,10 +2,10 @@ const supabase = require('../config/JS_supabaseClient');
 
 exports.agregarHelado = async (req, res) => {
   try {
-    const { sabor, tipo, precioMayor, precioDetal, cantidad, maquina, monedaMayor, monedaDetal } = req.body;
+    const { sabor, tipo, precio_mayor, precio_detal, cantidad, maquina, monedaMayor, monedaDetal } = req.body;
 
     // Validación mejorada
-    if (!sabor || !cantidad || !maquina) {
+    if (!sabor || !cantidad || !maquina || !precio_mayor || !precio_detal) {
       return res.status(400).json({
         success: false,
         message: 'Faltan campos requeridos: sabor, cantidad o máquina'
@@ -17,8 +17,8 @@ exports.agregarHelado = async (req, res) => {
       .insert([{
         sabor,
         tipo: tipo || 'normal',
-        precio_mayor: precioMayor ? parseFloat(precioMayor) : null,
-        precio_detal: precioDetal ? parseFloat(precioDetal) : null,
+        precio_mayor: parseInt(precio_mayor),
+        precio_detal: parseInt(precio_detal),
         moneda_mayor: monedaMayor || 'USD',
         moneda_detal: monedaDetal || 'Bs',
         cantidad: parseInt(cantidad),

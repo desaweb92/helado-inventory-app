@@ -3,19 +3,19 @@ const { supabase } = require('../config/JS_supabaseClient');
 // Función para agregar helados (nueva)
 exports.agregarHelado = async (req, res) => {
   try {
-    const { sabor, tipo, precioMayor, precioDetal, cantidad, maquina, monedaMayor, monedaDetal } = req.body;
+    const { sabor, tipo, precio_mayor, precio_detal, cantidad, maquina, monedaMayor, monedaDetal } = req.body;
 
-    console.log('Datos recibidos RAW:', req.body); // Verificación crucial
-    console.log('Valores antes de insertar:');
-console.log('precioMayor:', precioMayor, typeof precioMayor);
-console.log('precioDetal:', precioDetal, typeof precioDetal);
+console.log('Datos recibidos RAW:', req.body);
+console.log('Valores antes de insertar:');
+console.log('precio_mayor:', precio_mayor, typeof precio_mayor);
+console.log('precio_detal:', precio_detal, typeof precio_detal);
 console.log('cantidad:', cantidad, typeof cantidad);
 
 
 
 
     // Validación mejorada
-    if (!sabor || !cantidad || !maquina) {
+    if (!sabor || !cantidad || !maquina || !precio_mayor || !precio_detal) {
       return res.status(400).json({
         success: false,
         message: 'Faltan campos requeridos: sabor, cantidad o máquina'
@@ -28,14 +28,14 @@ console.log('cantidad:', cantidad, typeof cantidad);
       const num = Number(val);
       return isNaN(num) ? null : num;
     };
-console.log('parseNumber(precioMayor):', parseNumber(precioMayor), typeof parseNumber(precioMayor));
-console.log('parseNumber(precioDetal):', parseNumber(precioDetal), typeof parseNumber(precioDetal));
+console.log('parseInt(precio_mayor):', parseInt(precio_mayor), typeof parseInt(precio_mayor));
+console.log('parseInt(precio_detal):', parseInt(precio_detal), typeof parseInt(precio_detal));
 console.log('parseInt(cantidad):', parseInt(cantidad), typeof parseInt(cantidad));
     const insertData = {
       sabor,
       tipo: tipo || 'normal',
-      precio_mayor: parseNumber(precioMayor),
-      precio_detal: parseNumber(precioDetal),
+      precio_mayor: parseInt(precio_mayor) || 0,
+      precio_detal: parseInt(precio_detal) || 0,
       moneda_mayor: monedaMayor || 'USD',
       moneda_detal: monedaDetal || 'Bs',
       cantidad: parseInt(cantidad) || 0,

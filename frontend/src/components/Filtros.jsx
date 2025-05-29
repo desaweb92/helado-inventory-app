@@ -46,8 +46,8 @@ const Filtros = ({
               item.fecha,
               item.sabor,
               item.tipo,
-              `${item.precioMayor} ${item.monedaMayor}`,
-              `${item.precioDetal} ${item.monedaDetal}`,
+              `${item.precio_mayor} ${item.monedaMayor}`,
+              `${item.precio_detal} ${item.monedaDetal}`,
               item.cantidad,
               item.maquina
             ]

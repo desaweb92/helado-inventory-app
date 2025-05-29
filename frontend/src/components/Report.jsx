@@ -18,8 +18,8 @@ const Report = ({ inventario }) => {
             sabor,
             tipo: type,
             cantidad,
-            precioMayor: '$0', // Estos valores deberían venir de tu base de datos
-            precioDetal: '$0'  // O del estado de tu aplicación
+            precio_mayor: '$0', // Estos valores deberían venir de tu base de datos
+            precio_detal: '$0'  // O del estado de tu aplicación
           });
         });
       };
@@ -53,8 +53,8 @@ const Report = ({ inventario }) => {
       item.sabor,
       item.tipo,
       item.cantidad,
-      item.precioMayor,
-      item.precioDetal
+      item.precio_mayor,
+      item.precio_detal
     ]);
 
     // Configuración de la tabla
@@ -160,8 +160,8 @@ const Report = ({ inventario }) => {
                     </span>
                   </td>
                   <td className="py-3 px-4 text-gray-800 font-medium">{item.cantidad}</td>
-                  <td className="py-3 px-4 text-green-600 font-medium">{item.precioMayor}</td>
-                  <td className="py-3 px-4 text-green-600 font-medium">{item.precioDetal}</td>
+                  <td className="py-3 px-4 text-green-600 font-medium">{item.precio_mayor}</td>
+                  <td className="py-3 px-4 text-green-600 font-medium">{item.precio_detal}</td>
                 </tr>
               ))}
             </tbody>

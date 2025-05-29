@@ -77,10 +77,10 @@ const ProduccionTable = ({ produccionDia, aplicarFiltros, handleEdit, handleDele
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{item.cantidad}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-green-600 font-medium">
-                        {formatPrecio(item.precioMayor, item.monedaMayor)}
+                        {formatPrecio(item.precio_mayor, item.monedaMayor)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-green-600 font-medium">
-                        {formatPrecio(item.precioDetal, item.monedaDetal)}
+                        {formatPrecio(item.precio_detal, item.monedaDetal)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
@@ -151,13 +151,13 @@ const ProduccionTable = ({ produccionDia, aplicarFiltros, handleEdit, handleDele
                     <div>
                       <p className="text-xs font-medium text-gray-500">Precio Mayor</p>
                       <p className="text-sm text-green-600 font-medium">
-                        {formatPrecio(item.precioMayor, item.monedaMayor)}
+                        {formatPrecio(item.precio_mayor, item.monedaMayor)}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs font-medium text-gray-500">Precio Detal</p>
                       <p className="text-sm text-green-600 font-medium">
-                        {formatPrecio(item.precioDetal, item.monedaDetal)}
+                        {formatPrecio(item.precio_detal, item.monedaDetal)}
                       </p>
                     </div>
                     <div className="col-span-2 pt-2 flex justify-end space-x-2">
