@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { API_URL } from "../services/api";
 
-const ProduccionTable = ({ handleEdit, handleDelete }) => {
+const ProduccionTable = () => {
   const [produccionDia, setProduccionDia] = useState([]);
   const [resumen, setResumen] = useState({
     totalProduccionDia: 0,
@@ -18,12 +18,12 @@ const ProduccionTable = ({ handleEdit, handleDelete }) => {
     totalMaquinaMantecadoraSemana: 0,
     totalMaquinaMantecadoraMes: 0,
     totalMaquinaMantecadoraAnio: 0,
-    normal: {},
-    especial: {},
-    superEspecial: {},
-    "1lt": {},
-    "2lt": {},
-    "4lt": {}
+    normal: 0,
+    especial: 0,
+    superEspecial: 0,
+    "1lt": 0,
+    "2lt": 0,
+    "4lt": 0
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -79,54 +79,54 @@ const ProduccionTable = ({ handleEdit, handleDelete }) => {
     }));
   };
 
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      
-      // 1. Obtener todos los registros de producción
-      const prodResponse = await fetch(`${API_URL}/produccion`);
-      if (!prodResponse.ok) throw new Error('Error al obtener datos');
-      
-      const responseData = await prodResponse.json();
-      
-      // Verificar la estructura de la respuesta
-      const todosLosRegistros = responseData.data || responseData || [];
-      
-      if (!Array.isArray(todosLosRegistros)) {
-        throw new Error('Formato de datos inesperado');
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // 1. Obtener todos los registros de producción
+        const prodResponse = await fetch(`${API_URL}/produccion`);
+        if (!prodResponse.ok) throw new Error('Error al obtener datos');
+        
+        const responseData = await prodResponse.json();
+        
+        // Verificar la estructura de la respuesta
+        const todosLosRegistros = responseData.data || responseData || [];
+        
+        if (!Array.isArray(todosLosRegistros)) {
+          throw new Error('Formato de datos inesperado');
+        }
+
+        // Filtrar para obtener solo los del día actual
+        const hoy = new Date().toISOString().split('T')[0];
+        const produccionHoy = todosLosRegistros.filter(item => 
+          item.fecha && new Date(item.fecha).toISOString().split('T')[0] === hoy
+        );
+        
+        setProduccionDia(produccionHoy);
+        
+        // 2. Obtener el resumen
+        const resumenResponse = await fetch(`${API_URL}/produccion/resumen`);
+        if (!resumenResponse.ok) throw new Error('Error al obtener resumen');
+        
+        const resumenData = await resumenResponse.json();
+        const resumenCompleto = resumenData.data || resumenData;
+        
+        setResumen(prev => ({
+          ...prev,
+          ...resumenCompleto
+        }));
+        
+      } catch (err) {
+        setError(err.message);
+        console.error("Error fetching data:", err);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      // Filtrar para obtener solo los del día actual
-      const hoy = new Date().toISOString().split('T')[0];
-      const produccionHoy = todosLosRegistros.filter(item => 
-        item.fecha && new Date(item.fecha).toISOString().split('T')[0] === hoy
-      );
-      
-      setProduccionDia(produccionHoy);
-      
-      // 2. Obtener el resumen
-      const resumenResponse = await fetch(`${API_URL}/produccion/resumen`);
-      if (!resumenResponse.ok) throw new Error('Error al obtener resumen');
-      
-      const resumenData = await resumenResponse.json();
-      const resumenCompleto = resumenData.data || resumenData;
-      
-      setResumen(prev => ({
-        ...prev,
-        ...resumenCompleto
-      }));
-      
-    } catch (err) {
-      setError(err.message);
-      console.error("Error fetching data:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchData();
-}, []);
+    fetchData();
+  }, []);
 
   if (loading) return <div className="text-center py-8">Cargando datos de producción...</div>;
   if (error) return <div className="text-center py-8 text-red-600">Error: {error}</div>;
@@ -183,7 +183,7 @@ useEffect(() => {
       {/* Resumen de producción */}
       <div className="mb-6 bg-white p-4 rounded-lg shadow border border-gray-200">
         <h3 className="text-lg font-semibold mb-3 text-gray-800">Resumen general hoy</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="bg-blue-50 p-3 rounded-lg">
             <p className="text-sm text-blue-800 font-medium">Producción</p>
             <p className="text-xl font-bold">{resumen.totalProduccionDia?.toLocaleString() || '0'}</p>
@@ -195,14 +195,6 @@ useEffect(() => {
           <div className="bg-purple-50 p-3 rounded-lg">
             <p className="text-sm text-purple-800 font-medium">Mantecadora</p>
             <p className="text-xl font-bold">{resumen.totalMaquinaMantecadoraDia?.toLocaleString() || '0'}</p>
-          </div>
-          <div className="bg-yellow-50 p-3 rounded-lg">
-            <p className="text-sm text-yellow-800 font-medium">Ventas</p>
-            <p className="text-xl font-bold">Bs {resumen.totalPrecioDetal?.toLocaleString() || '0'}</p>
-          </div>
-          <div className="bg-yellow-50 p-3 rounded-lg">
-            <p className="text-sm text-yellow-800 font-medium">Ventas</p>
-            <p className="text-xl font-bold">USD {resumen.totalPrecioMayor?.toLocaleString() || '0'}</p>
           </div>
         </div>
       </div>
@@ -230,7 +222,6 @@ useEffect(() => {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Cantidad</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Precio Mayor</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Precio Detal</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -258,28 +249,6 @@ useEffect(() => {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-green-600 font-medium">
                         {formatPrecio(item.precio_detal, item.monedaDetal)}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleEdit(item)}
-                            className="text-yellow-600 hover:text-yellow-900 bg-yellow-50 hover:bg-yellow-100 px-3 py-1 rounded-md text-sm flex items-center"
-                          >
-                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item._id)}
-                            className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md text-sm flex items-center"
-                          >
-                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            Eliminar
-                          </button>
-                        </div>
                       </td>
                     </tr>
                   );
@@ -336,26 +305,6 @@ useEffect(() => {
                       <p className="text-sm text-green-600 font-medium">
                         {formatPrecio(item.precio_detal, item.monedaDetal)}
                       </p>
-                    </div>
-                    <div className="col-span-2 pt-2 flex justify-end space-x-2">
-                      <button
-                        onClick={() => handleEdit(item)}
-                        className="text-yellow-600 hover:text-yellow-900 bg-yellow-50 hover:bg-yellow-100 px-3 py-1 rounded-md text-sm flex items-center"
-                      >
-                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item._id)}
-                        className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md text-sm flex items-center"
-                      >
-                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Eliminar
-                      </button>
                     </div>
                   </div>
                 </div>

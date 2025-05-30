@@ -62,3 +62,4 @@ export const getHelados = async () => {
     throw error;
   }
 };
+
