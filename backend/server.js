@@ -139,6 +139,18 @@ app.get('/api/produccion', async (req, res) => {
   }
 });
 
+// En tu archivo server.js 
+app.get('/api/produccion/dia', async (req, res) => {
+  try {
+    // Reutilizamos el mismo controlador que ya tienes para /api/produccion
+    const resultado = await produccionController.obtenerHelados(req, res);
+    return resultado;
+  } catch (error) {
+    console.error('Error obteniendo producción del día:', error);
+    return res.status(500).json({ error: 'Error al obtener producción del día' });
+  }
+});
+
 app.get('/api/produccion/resumen', async (req, res) => {
   try {
     const { getResumenProduccion } = require('./src/controllers/JS_produccionController');

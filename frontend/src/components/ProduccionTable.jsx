@@ -1,6 +1,38 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { API_URL } from "../services/api";
 
-const ProduccionTable = ({ produccionDia, aplicarFiltros, handleEdit, handleDelete }) => {
+const ProduccionTable = ({ handleEdit, handleDelete }) => {
+  const [produccionDia, setProduccionDia] = useState([]);
+  const [resumen, setResumen] = useState({
+    totalProduccionDia: 0,
+    totalProduccionSemana: 0,
+    totalProduccionMes: 0,
+    totalProduccionAnio: 0,
+    totalPrecioMayor: 0,
+    totalPrecioDetal: 0,
+    totalMaquinaSoftDia: 0,
+    totalMaquinaSoftSemana: 0,
+    totalMaquinaSoftMes: 0,
+    totalMaquinaSoftAnio: 0,
+    totalMaquinaMantecadoraDia: 0,
+    totalMaquinaMantecadoraSemana: 0,
+    totalMaquinaMantecadoraMes: 0,
+    totalMaquinaMantecadoraAnio: 0,
+    normal: {},
+    especial: {},
+    superEspecial: {},
+    "1lt": {},
+    "2lt": {},
+    "4lt": {}
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({
+    tipo: '',
+    maquina: '',
+    sabor: ''
+  });
+
   // Función para obtener el color y etiqueta según el tipo de helado
   const getTipoStyles = (tipo) => {
     switch(tipo) {
@@ -27,17 +59,162 @@ const ProduccionTable = ({ produccionDia, aplicarFiltros, handleEdit, handleDele
     return moneda === 'USD' ? `$${precio}` : `Bs ${precio}`;
   };
 
+  // Función para aplicar filtros
+  const aplicarFiltros = () => {
+    return produccionDia.filter(item => {
+      return (
+        (filters.tipo === '' || item.tipo === filters.tipo) &&
+        (filters.maquina === '' || item.maquina === filters.maquina) &&
+        (filters.sabor === '' || item.sabor.toLowerCase().includes(filters.sabor.toLowerCase()))
+      );
+    });
+  };
+
+  // Función para manejar cambios en los filtros
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      
+      // 1. Obtener todos los registros de producción
+      const prodResponse = await fetch(`${API_URL}/produccion`);
+      if (!prodResponse.ok) throw new Error('Error al obtener datos');
+      
+      const responseData = await prodResponse.json();
+      
+      // Verificar la estructura de la respuesta
+      const todosLosRegistros = responseData.data || responseData || [];
+      
+      if (!Array.isArray(todosLosRegistros)) {
+        throw new Error('Formato de datos inesperado');
+      }
+
+      // Filtrar para obtener solo los del día actual
+      const hoy = new Date().toISOString().split('T')[0];
+      const produccionHoy = todosLosRegistros.filter(item => 
+        item.fecha && new Date(item.fecha).toISOString().split('T')[0] === hoy
+      );
+      
+      setProduccionDia(produccionHoy);
+      
+      // 2. Obtener el resumen
+      const resumenResponse = await fetch(`${API_URL}/produccion/resumen`);
+      if (!resumenResponse.ok) throw new Error('Error al obtener resumen');
+      
+      const resumenData = await resumenResponse.json();
+      const resumenCompleto = resumenData.data || resumenData;
+      
+      setResumen(prev => ({
+        ...prev,
+        ...resumenCompleto
+      }));
+      
+    } catch (err) {
+      setError(err.message);
+      console.error("Error fetching data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, []);
+
+  if (loading) return <div className="text-center py-8">Cargando datos de producción...</div>;
+  if (error) return <div className="text-center py-8 text-red-600">Error: {error}</div>;
+
   return (
     <div className="mt-8">
       <h2 className="text-xl font-bold mb-4 text-gray-800">Producción del día</h2>
       
+      {/* Filtros */}
+      <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+          <select
+            name="tipo"
+            value={filters.tipo}
+            onChange={handleFilterChange}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Todos</option>
+            <option value="normal">Normal</option>
+            <option value="especial">Especial</option>
+            <option value="superEspecial">Super Especial</option>
+            <option value="1lt">Envase 1lt</option>
+            <option value="2lt">Envase 2lt</option>
+            <option value="4lt">Envase 4lt</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Máquina</label>
+          <select
+            name="maquina"
+            value={filters.maquina}
+            onChange={handleFilterChange}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Todas</option>
+            <option value="soft">Soft</option>
+            <option value="mantecadora">Mantecadora</option>
+          </select>
+        </div>
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Sabor</label>
+          <input
+            type="text"
+            name="sabor"
+            value={filters.sabor}
+            onChange={handleFilterChange}
+            placeholder="Buscar por sabor..."
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+
+      {/* Resumen de producción */}
+      <div className="mb-6 bg-white p-4 rounded-lg shadow border border-gray-200">
+        <h3 className="text-lg font-semibold mb-3 text-gray-800">Resumen general hoy</h3>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="bg-blue-50 p-3 rounded-lg">
+            <p className="text-sm text-blue-800 font-medium">Producción</p>
+            <p className="text-xl font-bold">{resumen.totalProduccionDia?.toLocaleString() || '0'}</p>
+          </div>
+          <div className="bg-green-50 p-3 rounded-lg">
+            <p className="text-sm text-green-800 font-medium">Soft</p>
+            <p className="text-xl font-bold">{resumen.totalMaquinaSoftDia?.toLocaleString() || '0'}</p>
+          </div>
+          <div className="bg-purple-50 p-3 rounded-lg">
+            <p className="text-sm text-purple-800 font-medium">Mantecadora</p>
+            <p className="text-xl font-bold">{resumen.totalMaquinaMantecadoraDia?.toLocaleString() || '0'}</p>
+          </div>
+          <div className="bg-yellow-50 p-3 rounded-lg">
+            <p className="text-sm text-yellow-800 font-medium">Ventas</p>
+            <p className="text-xl font-bold">Bs {resumen.totalPrecioDetal?.toLocaleString() || '0'}</p>
+          </div>
+          <div className="bg-yellow-50 p-3 rounded-lg">
+            <p className="text-sm text-yellow-800 font-medium">Ventas</p>
+            <p className="text-xl font-bold">USD {resumen.totalPrecioMayor?.toLocaleString() || '0'}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabla de producción */}
       {aplicarFiltros().length === 0 ? (
         <div className="text-center py-8 bg-gray-50 rounded-lg">
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <h3 className="mt-2 text-lg font-medium text-gray-900">No hay registros</h3>
-          <p className="mt-1 text-gray-500">No se encontraron datos de producción.</p>
+          <p className="mt-1 text-gray-500">No se encontraron datos de producción con los filtros seleccionados.</p>
         </div>
       ) : (
         <>
@@ -85,7 +262,7 @@ const ProduccionTable = ({ produccionDia, aplicarFiltros, handleEdit, handleDele
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => handleEdit(index)}
+                            onClick={() => handleEdit(item)}
                             className="text-yellow-600 hover:text-yellow-900 bg-yellow-50 hover:bg-yellow-100 px-3 py-1 rounded-md text-sm flex items-center"
                           >
                             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -94,7 +271,7 @@ const ProduccionTable = ({ produccionDia, aplicarFiltros, handleEdit, handleDele
                             Editar
                           </button>
                           <button
-                            onClick={() => handleDelete(index)}
+                            onClick={() => handleDelete(item._id)}
                             className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md text-sm flex items-center"
                           >
                             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -162,7 +339,7 @@ const ProduccionTable = ({ produccionDia, aplicarFiltros, handleEdit, handleDele
                     </div>
                     <div className="col-span-2 pt-2 flex justify-end space-x-2">
                       <button
-                        onClick={() => handleEdit(index)}
+                        onClick={() => handleEdit(item)}
                         className="text-yellow-600 hover:text-yellow-900 bg-yellow-50 hover:bg-yellow-100 px-3 py-1 rounded-md text-sm flex items-center"
                       >
                         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -171,7 +348,7 @@ const ProduccionTable = ({ produccionDia, aplicarFiltros, handleEdit, handleDele
                         Editar
                       </button>
                       <button
-                        onClick={() => handleDelete(index)}
+                        onClick={() => handleDelete(item._id)}
                         className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md text-sm flex items-center"
                       >
                         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
