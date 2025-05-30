@@ -813,20 +813,7 @@ const handleSubmitProduccion = (e) => {
             handleSubmitProduccion={handleSubmitProduccion}
             editIndex={editIndex}
           />
-          <div className="mt-4">
-            <button
-              onClick={exportToExcel}
-              className="mr-2 bg-green text-white px-4 py-2 rounded-lg hover:bg-fucshia"
-            >
-              Exportar a Excel
-            </button>
-            <button
-              onClick={exportToPDF}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-            >
-              Exportar a PDF
-            </button>
-          </div>
+         
           <ProduccionTable
             produccionDia={produccionDia}
             aplicarFiltros={aplicarFiltros}

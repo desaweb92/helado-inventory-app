@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { API_URL } from "../services/api";
+import { saveAs } from 'file-saver';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from "jspdf-autotable";
 
 const ProduccionTable = () => {
   const [produccionDia, setProduccionDia] = useState([]);
@@ -131,6 +135,116 @@ const ProduccionTable = () => {
   if (loading) return <div className="text-center py-8">Cargando datos de producción...</div>;
   if (error) return <div className="text-center py-8 text-red-600">Error: {error}</div>;
 
+ const exportToPDF = () => {
+  try {
+    const datosFiltrados = aplicarFiltros();
+    const doc = new jsPDF();
+    const colorPrincipal = '#E91E63';
+    const colorSecundario = '#4CAF50';
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Agregar logo (opcional)
+    if (typeof doc.addImage === 'function') {
+      doc.addImage('https://i.imgur.com/GkhD8en.jpg', 'JPEG', pageWidth - 30, 10, 20, 20);
+    }
+    
+    // Título del reporte
+    doc.setFontSize(18);
+    doc.setTextColor(colorPrincipal);
+    doc.text("Reporte de Producción de Helados", pageWidth / 2, 20, { align: 'center' });
+
+    // Información adicional
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text("Nota: Los precios al por mayor se registran en USD y los precios al detal en Bs", 14, 30);
+    doc.text(`Generado: ${new Date().toLocaleDateString()}`, 14, 35);
+    
+    // Agregar información de filtros si están aplicados
+    if (filters.tipo || filters.maquina || filters.sabor) {
+      doc.text("Filtros aplicados:", 14, 40);
+      let filterText = [];
+      if (filters.tipo) filterText.push(`Tipo: ${filters.tipo}`);
+      if (filters.maquina) filterText.push(`Máquina: ${filters.maquina}`);
+      if (filters.sabor) filterText.push(`Sabor: ${filters.sabor}`);
+      doc.text(filterText.join(', '), 14, 45);
+    }
+    
+    // Configurar la tabla con autoTable
+    autoTable(doc, {
+      startY: filters.tipo || filters.maquina || filters.sabor ? 50 : 45,
+      head: [
+        [
+          { content: "Fecha", styles: { fillColor: colorSecundario } },
+          { content: "Sabor", styles: { fillColor: colorSecundario } },
+          { content: "Tipo", styles: { fillColor: colorSecundario } },
+          { content: "Precio Mayor", styles: { fillColor: colorSecundario } },
+          { content: "Precio Detal", styles: { fillColor: colorSecundario } },
+          { content: "Cantidad", styles: { fillColor: colorSecundario } },
+          { content: "Máquina", styles: { fillColor: colorSecundario } }
+        ]
+      ],
+      body: datosFiltrados.map((item) => [
+        item.fecha,
+        item.sabor,
+        item.tipo,
+        `${item.precio_mayor} ${item.monedaMayor}`,
+        `${item.precio_detal} ${item.monedaDetal}`,
+        `${item.cantidad}`,
+        item.maquina
+      ]),
+      headStyles: {
+        textColor: 255,
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245]
+      },
+      margin: { left: 14, right: 14 },
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+        overflow: 'linebreak'
+      }
+    });
+    
+    // Pie de página
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setDrawColor(colorPrincipal);
+    doc.setLineWidth(0.3);
+    doc.line(14, finalY, pageWidth - 14, finalY);
+    
+    doc.setFontSize(8);
+    doc.setTextColor(100);
+    doc.text("Helados para todos - Sistema de Producción", pageWidth / 2, finalY + 10, { align: 'center' });
+    
+    // Guardar el PDF
+    doc.save(`reporte_produccion_${new Date().getTime()}.pdf`);
+    
+  } catch (error) {
+    console.error("Error al generar el PDF:", error);
+    alert("Ocurrió un error al generar el reporte. Por favor intente nuevamente.");
+  }
+};
+
+  const exportToExcel = () => {
+    const datosFiltrados = aplicarFiltros();
+    const datosConMoneda = datosFiltrados.map(item => ({
+      ...item,
+      precio_mayor: `${item.precio_mayor} ${item.monedaMayor}`,
+      precio_detal: `${item.precio_detal} ${item.monedaDetal}`
+    }));
+    
+    const ws = XLSX.utils.json_to_sheet(datosConMoneda);
+    const wb = { Sheets: { Producción: ws }, SheetNames: ["Producción"] };
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    
+    // Nombre del archivo con fecha y hora
+    const fechaHora = new Date().toISOString().replace(/[:.]/g, '-');
+    saveAs(blob, `produccion_helados_${fechaHora}.xlsx`);
+  };
+
+
   return (
     <div className="mt-8">
       <h2 className="text-xl font-bold mb-4 text-gray-800">Producción del día</h2>
@@ -148,7 +262,7 @@ const ProduccionTable = () => {
             <option value="">Todos</option>
             <option value="normal">Normal</option>
             <option value="especial">Especial</option>
-            <option value="superEspecial">Super Especial</option>
+            <option value="super_especial">Super Especial</option>
             <option value="1lt">Envase 1lt</option>
             <option value="2lt">Envase 2lt</option>
             <option value="4lt">Envase 4lt</option>
@@ -180,24 +294,29 @@ const ProduccionTable = () => {
         </div>
       </div>
 
-      {/* Resumen de producción */}
-      <div className="mb-6 bg-white p-4 rounded-lg shadow border border-gray-200">
-        <h3 className="text-lg font-semibold mb-3 text-gray-800">Resumen general hoy</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <div className="bg-blue-50 p-3 rounded-lg">
-            <p className="text-sm text-blue-800 font-medium">Producción</p>
-            <p className="text-xl font-bold">{resumen.totalProduccionDia?.toLocaleString() || '0'}</p>
-          </div>
-          <div className="bg-green-50 p-3 rounded-lg">
-            <p className="text-sm text-green-800 font-medium">Soft</p>
-            <p className="text-xl font-bold">{resumen.totalMaquinaSoftDia?.toLocaleString() || '0'}</p>
-          </div>
-          <div className="bg-purple-50 p-3 rounded-lg">
-            <p className="text-sm text-purple-800 font-medium">Mantecadora</p>
-            <p className="text-xl font-bold">{resumen.totalMaquinaMantecadoraDia?.toLocaleString() || '0'}</p>
-          </div>
-        </div>
+       {/* Botones de exportación */}
+      <div className="mb-4 flex justify-end space-x-2">
+        <button
+          onClick={exportToPDF}
+          className="bg-fucshia hover:bg-fucshia text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
+        >
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+          </svg>
+          Exportar a PDF
+        </button>
+        <button
+          onClick={exportToExcel}
+          className="bg-green hover:bg-green text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
+        >
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Exportar a Excel
+        </button>
       </div>
+
+ 
 
       {/* Tabla de producción */}
       {aplicarFiltros().length === 0 ? (
